@@ -558,7 +558,8 @@ class Ribbon():
             ],
             "knots": [[
                 {
-                    "type": self.K[x][y].type,
+                    "co": self.K[x][y].co,
+                    "type": self.K[x][y].type.name,
                     "left_thread_vis": self.K[x][y].left_thread_vis
                 }
                 for y in range(self.l)
@@ -587,8 +588,12 @@ class Ribbon():
         for x in range(min(self.w, len(knots_data))):
             for y in range(min(self.l, len(knots_data[x]))):
                 knot_data = knots_data[x][y]
-                self.K[x][y].type = knot_data.get("type", Const.Nk)
+                type_str = knot_data.get("type", "Nk")
+                self.K[x][y].type = getattr(Const, type_str, Const.Nk)
                 self.K[x][y].left_thread_vis = knot_data.get("left_thread_vis", True)
+                # Restore coordinates if present
+                if "co" in knot_data:
+                    self.K[x][y].co = knot_data["co"]
 
         # Recalculate all thread colors through the pattern
         for i in range(len(self.StartKnot_list)):

@@ -1,5 +1,6 @@
 import sys
 import json
+import os
 
 from PyQt6.QtGui import QPainter, QKeySequence, QAction
 from PyQt6.QtWidgets import (QApplication, QGraphicsScene, QMainWindow, QGraphicsView,
@@ -112,7 +113,7 @@ class MainWindow(QMainWindow):
 
             # Update file path and window title
             self.file_path = path
-            self.setWindowTitle(f"Ribbon Editor - {path}")
+            self.setWindowTitle(f"Ribbon Editor - {os.path.basename(path)}")
 
         except Exception as e:
             QMessageBox.critical(
@@ -134,7 +135,7 @@ class MainWindow(QMainWindow):
                 data = self.R.to_dict()
                 with open(self.file_path, "w") as f:
                     json.dump(data, f, indent=2)
-                self.setWindowTitle(f"Ribbon Editor - {self.file_path}")
+                self.setWindowTitle(f"Ribbon Editor - {os.path.basename(self.file_path)}")
             except Exception as e:
                 QMessageBox.critical(
                     self,
