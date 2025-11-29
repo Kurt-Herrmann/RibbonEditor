@@ -529,21 +529,82 @@ class Ribbon():
         return (center)
 
     def extract_KnPar(self):
-        KnPar = {
-            "co": [],
-            "left_thread_vis": True,
-            "type": "Nk",
-            "endK": False
+        All_KnPar = []
+        for x in range(self.w):
+            column = []
+            for y in range(self.l):
+                KnPar = {
+                    "co": self.K[x][y].co,
+                    "left_thread_vis": self.K[x][y].left_thread_vis,
+                    "type": self.K[x][y].type,
+                    "endK": self.K[x][y].endK
+                }
+                column.append(KnPar)
+            All_KnPar.append(column)
+        return All_KnPar
+
+    def to_dict(self):
+        """Extract all ribbon data for saving to file"""
+        return {
+            "version": "1.0",
+            "ribbon": {
+                "width": self.w,
+                "length": self.l,
+                "type": self.type
+            },
+            "thread_colors": [
+                [sk.color.red(), sk.color.green(), sk.color.blue()]
+                for sk in self.StartKnot_list
+            ],
+            "knots": [[
+                {
+                    "type": self.K[x][y].type,
+                    "left_thread_vis": self.K[x][y].left_thread_vis
+                }
+                for y in range(self.l)
+            ] for x in range(self.w)]
         }
-        All_KnPar = [[KnPar for _ in range(self.l)] for _ in range(self.w)]
-        for y in range(self.l):
-            for x in range(self.w):
-                KnPar["co"] = self.K[x][y].co
-                KnPar["left_thread_vis"] = self.K[x][y].left_thread_vis
-                KnPar["type"] = self.K[x][y].type
-                KnPar["endK"] = self.K[x][y].endK
-                # print(f"co {KnPar["co"]} left_thread_visible {KnPar["left_thread_vis"]} type {KnPar["type"]} endK {KnPar["endK"]}")
-        return (All_KnPar)
+
+    def restore_from_dict(self, data):
+        """Restore knot states and thread colors from saved data"""
+        # Restore thread colors
+        thread_colors = data.get("thread_colors", [])
+        for i, rgb in enumerate(thread_colors):
+            if i < len(self.StartKnot_list):
+                new_color = QColor(rgb[0], rgb[1], rgb[2])
+                self.StartKnot_list[i].color = new_color
+                # Update the color rectangle
+                color_rect = self.StartKnot_list[i].line.scene().items()
+                # Find and update the corresponding ColorRect
+                for item in color_rect:
+                    if isinstance(item, ColorRect) and hasattr(item, 'index') and item.index == i:
+                        item.setBrush(QBrush(new_color))
+                        item.color = new_color
+                        break
+
+        # Restore knot states
+        knots_data = data.get("knots", [])
+        for x in range(min(self.w, len(knots_data))):
+            for y in range(min(self.l, len(knots_data[x]))):
+                knot_data = knots_data[x][y]
+                self.K[x][y].type = knot_data.get("type", Const.Nk)
+                self.K[x][y].left_thread_vis = knot_data.get("left_thread_vis", True)
+
+        # Recalculate all thread colors through the pattern
+        for i in range(len(self.StartKnot_list)):
+            CS = self.StartKnot_list[i]
+            color = CS.color
+            Kh = CS.Knot
+            direction = CS.direction
+            Kh.set_thread(color, direction, self.thW)
+
+        # Run twice to ensure all colors propagate
+        for i in range(len(self.StartKnot_list)):
+            CS = self.StartKnot_list[i]
+            color = CS.color
+            Kh = CS.Knot
+            direction = CS.direction
+            Kh.set_thread(color, direction, self.thW)
 
     def get_ribbon(self):
         scene = self.scene()

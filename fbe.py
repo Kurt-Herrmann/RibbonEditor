@@ -1,8 +1,9 @@
 import sys
+import json
 
 from PyQt6.QtGui import QPainter, QKeySequence, QAction
 from PyQt6.QtWidgets import (QApplication, QGraphicsScene, QMainWindow, QGraphicsView,
-                             QDialog, QMessageBox, QSizePolicy)
+                             QDialog, QMessageBox, QSizePolicy, QFileDialog)
 
 from ribbon import *
 from ribbon_dialog import Ui_Dialog
@@ -18,6 +19,7 @@ class MainWindow(QMainWindow):
         self.view.setSizePolicy(QSizePolicy.Policy.Expanding,
                                 QSizePolicy.Policy.Expanding)
         self.R = None
+        self.file_path = None
         self.window_w = 300
         self.window_h = 800
         self.window_edge = 25
@@ -59,7 +61,7 @@ class MainWindow(QMainWindow):
             width = width - 1
             QMessageBox.warning(None, "Warning", "For width in ribbon types \"M\" and \"A\" "
                                                  "no even numbers are \nallowed ! "
-                                                 "The next smaller odd number has been assigned.")A popup
+                                                 "The next smaller odd number has been assigned.")
         self.R = Ribbon(self.scene, width, length, type)
 
         All_Knot_Paramters = self.R.extract_KnPar()
@@ -75,27 +77,89 @@ class MainWindow(QMainWindow):
         self.scene.setSceneRect(0, 0, self.R.cplW, self.R.cplL)
         self.setGeometry(2400,-250,self.window_w, 800)
 
-    def open_file():
-        global file_path
-        path = QFileDialog.getOpenFileName(window, "Open")[0]
-        if path:
-            text.setPlainText(open(path).read())
-            file_path = path
+    def open_file(self):
+        """Open a ribbon pattern file"""
+        path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Open Ribbon Pattern",
+            "",
+            "Ribbon Files (*.rbn);;All Files (*)"
+        )
+        if not path:
+            return
 
-    def save():
-        if file_path is None:
-            save_as()
+        try:
+            with open(path, "r") as f:
+                data = json.load(f)
+
+            # Extract ribbon parameters
+            ribbon_data = data.get("ribbon", {})
+            width = ribbon_data.get("width", 5)
+            length = ribbon_data.get("length", 10)
+            ribbon_type = ribbon_data.get("type", "L")
+
+            # Create new ribbon with the saved dimensions
+            self.R = Ribbon(self.scene, width, length, ribbon_type)
+
+            # Restore saved state
+            self.R.restore_from_dict(data)
+
+            # Update window
+            self.window_w = int(self.R.cplW + 2 * self.window_edge)
+            self.window_h = int(self.R.cplL + 2 * self.window_edge)
+            self.scene.setSceneRect(0, 0, self.R.cplW, self.R.cplL)
+            self.setGeometry(2400, -250, self.window_w, 800)
+
+            # Update file path and window title
+            self.file_path = path
+            self.setWindowTitle(f"Ribbon Editor - {path}")
+
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Error Opening File",
+                f"Could not open file: {str(e)}"
+            )
+
+    def save(self):
+        """Save the current ribbon pattern"""
+        if self.R is None:
+            QMessageBox.warning(self, "No Ribbon", "Please create a ribbon first.")
+            return
+
+        if self.file_path is None:
+            self.save_as()
         else:
-            with open(file_path, "w") as f:
-                f.write(text.toPlainText())
-            text.document().setModified(False)
+            try:
+                data = self.R.to_dict()
+                with open(self.file_path, "w") as f:
+                    json.dump(data, f, indent=2)
+                self.setWindowTitle(f"Ribbon Editor - {self.file_path}")
+            except Exception as e:
+                QMessageBox.critical(
+                    self,
+                    "Error Saving File",
+                    f"Could not save file: {str(e)}"
+                )
 
-    def save_as():
-        global file_path
-        path = QFileDialog.getSaveFileName(window, "Save As")[0]
+    def save_as(self):
+        """Save the ribbon pattern with a new filename"""
+        if self.R is None:
+            QMessageBox.warning(self, "No Ribbon", "Please create a ribbon first.")
+            return
+
+        path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save Ribbon Pattern As",
+            "",
+            "Ribbon Files (*.rbn);;All Files (*)"
+        )
         if path:
-            file_path = path
-            save()
+            # Add .rbn extension if not present
+            if not path.endswith('.rbn'):
+                path += '.rbn'
+            self.file_path = path
+            self.save()
 
     def show_about_dialog():
         text = "<center>" \
@@ -117,7 +181,6 @@ def show_warning_messagebox(text):
 
 
 def main():
-    file_path = None
     app = QApplication(sys.argv)
     window = MainWindow()
 
