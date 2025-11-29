@@ -23,7 +23,7 @@ class MainWindow(QMainWindow):
         self.window_edge = 25
 
         self.setCentralWidget(self.view)
-        self.setWindowTitle("FBE - Freundschafts-Band-Editor")
+        self.setWindowTitle("Ribbon Editor")
 
     def closeEvent(self, e):
         # if not text.document().isModified():
@@ -59,7 +59,7 @@ class MainWindow(QMainWindow):
             width = width - 1
             QMessageBox.warning(None, "Warning", "For width in ribbon types \"M\" and \"A\" "
                                                  "no even numbers are \nallowed ! "
-                                                 "The next smaller odd number has been assigned.")
+                                                 "The next smaller odd number has been assigned.")A popup
         self.R = Ribbon(self.scene, width, length, type)
 
         All_Knot_Paramters = self.R.extract_KnPar()
