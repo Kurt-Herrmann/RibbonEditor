@@ -28,6 +28,33 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.view)
         self.setWindowTitle("Ribbon Editor")
 
+        # only for debug *******************************************************
+        width = 7
+        length = 120
+        type = "M"
+        # only for debug
+        # make sure that width is un even for types M and A
+        if width % 2 == 0 and (type == "M" or type == "A"):
+            width = width - 1
+            QMessageBox.warning(None, "Warning", "For width in ribbon types \"M\" and \"A\" "
+                                                 "no even numbers are \nallowed ! "
+                                                 "The next smaller odd number has been assigned.")
+        self.R = Ribbon(self.scene, width, length, type)
+
+        All_Knot_Paramters = self.R.extract_KnPar()
+        All_Ribbon_Parameters = {
+            "width": width,
+            "length": length,
+            "type": type,
+            "all_knot_parameters": All_Knot_Paramters
+        }
+        self.window_w = int(self.R.cplW + 2 * self.window_edge)
+        self.window_h = int(self.R.cplL + 2 * self.window_edge)
+
+        self.scene.setSceneRect(0, 0, self.R.cplW, self.R.cplL)
+        self.setGeometry(2400, -250, self.window_w, 800)
+        # only for debug ***********************************************************
+
     def closeEvent(self, e):
         # if not text.document().isModified():
         #     return
@@ -215,7 +242,6 @@ def main():
     help_menu.addAction(about_action)
     about_action.triggered.connect(window.show_about_dialog)
 
-    window.resize(250, 150)
     window.show()
     # window.setCentralWidget(self.view)
     window.scene.update()

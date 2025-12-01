@@ -4,7 +4,7 @@ from enum import Enum, auto
 from PyQt6.QtCore import QRectF, QTimer, Qt
 from PyQt6.QtGui import QColor, QPen, QBrush, QPainterPath
 from PyQt6.QtWidgets import (QColorDialog, QGraphicsLineItem, QGraphicsPathItem,
-                             QGraphicsRectItem, QGraphicsEllipseItem)
+                             QGraphicsRectItem, QGraphicsEllipseItem, QGraphicsSimpleTextItem)
 
 
 class Ribbon():
@@ -88,6 +88,7 @@ class Ribbon():
             # print(f"Thread {i} color {color_name} 1st pass direction {direction}")
             help = Kh.set_thread(color, direction, self.thW)
         # print("Setup completed !")
+        self.row_labels()
 
     def set_type_L(self):
         self.make_knot_links(True, 0, self.w)
@@ -392,16 +393,25 @@ class Ribbon():
                 colors.append(f[j % 8])
                 j -= 1
 
-        offset = 0  # offset of ColorSelect rectangles
         for i in range(self.w + 1):
             # rotate start colors
             fill = colors[i]
+
             # draw color bar rectangles
-            ref = Vector(offset, 0)
-            CB_start = Vector(self.Ec, self.Ec)
-            ref1 = ref + CB_start
+            f_y = 2
+            f_x = f_y / 2
+            d_l = Vector(-f_x * self.Vd, -f_y * self.Vd)  # displacement to the left
+            d = Vector(0, -f_y * self.Vd)   # no x displacement
+            d_r = Vector(f_x * self.Vd, -f_y * self.Vd) # displacement to the right
+            if type="L":
+                # first thread left
+                ref = d_l + self.K[0][0].co
+                # first thread right
+
+                ref = Vector(offset, 0)
+                CB_start = Vector(self.Ec, self.Ec)
+                ref1 = ref + CB_start
             rect = ColorRect(ref1.x, ref1.y, self.Rd, self.Rd, i)
-            # rect = QGraphicsRectItem(ref1.x, ref1.y, self.Rd, self.Rd)
             rect.setPen(penO)
             rect.setBrush(fill)
             hK = self.get_start_knot(i, fill)
@@ -426,6 +436,82 @@ class Ribbon():
             self.StartKnot_list.append(StKnot)
             offset += self.Vd * self.cBh
             self.scene.addItem(rect)
+
+    # def draw_color_bar(self, type):
+    #     # preset available start colors
+    #     black = QColor("black")
+    #     red = QColor.fromRgb(255, 99, 71)
+    #     green = QColor.fromRgb(0, 255, 0)
+    #     blue = QColor.fromRgb(0, 191, 255)
+    #     grey = QColor("lightgrey")
+    #     darkgrey = QColor("darkgrey")
+    #     cyan = QColor("cyan")
+    #     magenta = QColor.fromRgb(238, 130, 238)
+    #     yellow = QColor("yellow")
+    #     f = [red, green, blue, black, cyan, magenta, yellow, darkgrey]
+    #     colors = []
+    #
+    #     outline = black
+    #     penO = QPen()
+    #     penO.setWidth(1)
+    #     penO.setColor(outline)
+    #
+    #     if type == "L" or type == "R":
+    #         j = 0
+    #         for i in range(self.w + 1):
+    #             color_name = self.color.print_color_key(f[j % 8])
+    #             # print(f"i {i} j {j} color {color_name}")
+    #             colors.append(f[j % 8])
+    #             j += 1
+    #     else:  # type M or A
+    #         mid = self.w // 2
+    #         j = 0
+    #         for i in range(0, mid + 1):
+    #             color_name = self.color.print_color_key(f[j % 8])
+    #             # print(f"i {i} j {j} color {color_name}")
+    #             colors.append(f[j % 8])
+    #             j += 1
+    #         j = mid
+    #         for i in range(self.w + 1, mid + 1, -1):
+    #             color_name = self.color.print_color_key(f[j % 8])
+    #             # print(f"i {i} j {j} color {color_name}")
+    #             colors.append(f[j % 8])
+    #             j -= 1
+    #
+    #     offset = 0  # offset of ColorSelect rectangles
+    #     for i in range(self.w + 1):
+    #         # rotate start colors
+    #         fill = colors[i]
+    #         # draw color bar rectangles
+    #         ref = Vector(offset, 0)
+    #         CB_start = Vector(self.Ec, self.Ec)
+    #         ref1 = ref + CB_start
+    #         rect = ColorRect(ref1.x, ref1.y, self.Rd, self.Rd, i)
+    #         # rect = QGraphicsRectItem(ref1.x, ref1.y, self.Rd, self.Rd)
+    #         rect.setPen(penO)
+    #         rect.setBrush(fill)
+    #         hK = self.get_start_knot(i, fill)
+    #         nextKnot = hK[0]  # Knot
+    #         direction = hK[1]  # input direction to knot
+    #         # print(f"x {nextKnot.co[0]} y {nextKnot.co[1]} gco.x {nextKnot.gco.x:.0f} gco.y {nextKnot.gco.y:.0f}")
+    #         cRect = Vector()
+    #         cRect = self.center(rect)
+    #         cCircle = Vector()
+    #         cCircle = self.center(nextKnot.circle)
+    #         line = QGraphicsLineItem(cRect.x, cRect.y, cCircle.x, cCircle.y)
+    #         penL = QPen()
+    #         penL.setColor(fill)
+    #         penL.setWidth(self.thW)
+    #         line.setPen(penL)
+    #         self.scene.addItem(line)
+    #         StKnot = self.KnotList(self.scene, self.KnPnts)  # save start knot
+    #         StKnot.color = fill  # thread color
+    #         StKnot.Knot = hK[0]  # start knot
+    #         StKnot.direction = hK[1]  # start input direction
+    #         StKnot.line = line
+    #         self.StartKnot_list.append(StKnot)
+    #         offset += self.Vd * self.cBh
+    #         self.scene.addItem(rect)
 
     def get_start_knot(self, i, fill):
         hK = [Knot(self.scene, self.KnPnts), Const.LeftIn]  # help Knot and input direction
@@ -542,6 +628,30 @@ class Ribbon():
                 column.append(KnPar)
             All_KnPar.append(column)
         return All_KnPar
+
+    def row_labels(self):
+        for i in range(self.l):
+            x = 0
+            label_pos = Vector()
+            displacement = Vector()
+            if i < 10:
+                displacement.x = -self.Vd * 0.55
+            elif i < 100:
+                displacement.x = -self.Vd * 0.9
+            else:
+                displacement.x = -self.Vd * 1.225
+            # displacement.y = -self.Vd
+            label_pos = self.K[0][i].gco + displacement
+            label = str(i)
+            row_label = my_text(label, label_pos)
+            self.scene.addItem(row_label)
+            x = self.w - 1
+            displacement.x = self.Vd * 1.35
+            # displacement.y = -self.Vd
+            label_pos = self.K[self.w - 1][i].gco + displacement
+            label = str(i)
+            row_label = my_text(label, label_pos)
+            self.scene.addItem(row_label)
 
     def to_dict(self):
         """Extract all ribbon data for saving to file"""
@@ -1143,6 +1253,17 @@ class my_Colors():
         color_name = [k for k, v in self.f_d.items() if v == color]
         # print(f"print_color_name, {color_name}")
         return (color_name)
+
+
+class my_text(QGraphicsSimpleTextItem):
+    def __init__(self, text, pos, size=18, color=QColor("black")):
+        super().__init__(text)
+        font = self.font()
+        font.setPointSize(size)
+        self.setFont(font)
+        self.setBrush(color)
+        self.setX(pos.x)
+        self.setY(pos.y)
 
 
 class SceneObjectBase:
