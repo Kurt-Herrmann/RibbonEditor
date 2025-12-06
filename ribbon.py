@@ -22,11 +22,16 @@ class Ribbon():
         self.StartKnot_list = []
         self.Kd = 40  # knot diameter
         self.Rd = self.Kd * 0.9
-        self.Vd = 35  # factor to define horizontal and vertical distance, 1 .. touching quads
+        self.Vd = 35  # factor to define horizontal and vertical distance, 1 . touching quads
         self.Ec = 0.5 * self.Kd  # edge clearance ribbon
         self.cBh = 1.4  # horizontal spacing factor for colour bar
         self.cBv = 3  # vertical spacing factor for color bar
-        self.cBx = 0  # horizontal offset ribbon to color bar,
+        self.cBx = 0  # horizontal offset ribbon to color bar
+        self.f_y = 2  # vertical offset color bar to ribbon
+        self.f_x = 1  # horizontal offset of color bar rectangles for 2 thread knots
+        self.dis_left = Vector(-self.f_x * self.Vd, -self.f_y * self.Vd)  # x displacement to the left
+        self.dis_none = Vector(0, -self.f_y * self.Vd)  # no x displacement
+        self.dis_right = Vector(self.f_x * self.Vd, -self.f_y * self.Vd)  # x displacement to the right
         self.cBy = 0  # vertical offset ribbon to color bar cBm = (cBh * self.Vd * (self.w + 1) + self.Kd) / 2
         self.cplW = 0  # complete width
         self.cplL = 0  # complete length
@@ -221,8 +226,8 @@ class Ribbon():
         self.K = [[Knot(self.scene, self.KnPnts) for _ in range(self.l)] for _ in range(self.w)]
 
         # only for debug ?
-        for y in range(self.l):  # y ... index to the rows
-            for x in range(self.w):  # x ... index inside each row
+        for y in range(self.l):  # y .. index to the rows
+            for x in range(self.w):  # x .. index inside each row
                 self.K[x][y].co[0] = x
                 self.K[x][y].co[1] = y
                 # print(f"x {x}, y {y}, type {self.K[x][y].type} "
@@ -238,8 +243,8 @@ class Ribbon():
 
     def make_knot_links(self, normal, start, stop):
         # at init all knot are type Nk
-        for y in range(self.l):  # y ... index to the rows
-            for x in range(start, stop):  # x ... index to columns
+        for y in range(self.l):  # y .. index to the rows
+            for x in range(start, stop):  # x .. index to columns
                 if not self.K[x][y].endK:
                     if normal:
                         nKtoR = Knot(self.scene, self.KnPnts)
@@ -393,30 +398,23 @@ class Ribbon():
                 colors.append(f[j % 8])
                 j -= 1
 
+        offset = 0  # offset of ColorSelect rectangles
         for i in range(self.w + 1):
             # rotate start colors
             fill = colors[i]
 
             # draw color bar rectangles
-            f_y = 2
-            f_x = f_y / 2
-            d_l = Vector(-f_x * self.Vd, -f_y * self.Vd)  # displacement to the left
-            d = Vector(0, -f_y * self.Vd)   # no x displacement
-            d_r = Vector(f_x * self.Vd, -f_y * self.Vd) # displacement to the right
-            if type="L":
-                # first thread left
-                ref = d_l + self.K[0][0].co
-                # first thread right
-
-                ref = Vector(offset, 0)
-                CB_start = Vector(self.Ec, self.Ec)
-                ref1 = ref + CB_start
+            ref = Vector(offset, 0)
+            CB_start = Vector(self.Ec, self.Ec)
+            ref1 = ref + CB_start
             rect = ColorRect(ref1.x, ref1.y, self.Rd, self.Rd, i)
             rect.setPen(penO)
             rect.setBrush(fill)
             hK = self.get_start_knot(i, fill)
-            nextKnot = hK[0]  # Knot
-            direction = hK[1]  # input direction to knot
+            # nextKnot = hK[0]  # Knot
+            # direction = hK[1]  # input direction to knot
+            nextKnot=hK["Knot"]
+            direction =hK["Direction"]
             # print(f"x {nextKnot.co[0]} y {nextKnot.co[1]} gco.x {nextKnot.gco.x:.0f} gco.y {nextKnot.gco.y:.0f}")
             cRect = Vector()
             cRect = self.center(rect)
@@ -430,8 +428,8 @@ class Ribbon():
             self.scene.addItem(line)
             StKnot = self.KnotList(self.scene, self.KnPnts)  # save start knot
             StKnot.color = fill  # thread color
-            StKnot.Knot = hK[0]  # start knot
-            StKnot.direction = hK[1]  # start input direction
+            StKnot.Knot = hK["Knot"]  # start knot
+            StKnot.direction = hK["Direction"]  # start input direction
             StKnot.line = line
             self.StartKnot_list.append(StKnot)
             offset += self.Vd * self.cBh
@@ -514,63 +512,115 @@ class Ribbon():
     #         self.scene.addItem(rect)
 
     def get_start_knot(self, i, fill):
-        hK = [Knot(self.scene, self.KnPnts), Const.LeftIn]  # help Knot and input direction
+        nextKnot = Knot(self.scene, self.KnPnts)
+        colorRect = QGraphicsRectItem
+        hK = {"Knot": nextKnot, "Direction": Const.LeftIn, "Rect": ColorRect}
+        ref=Vector()
+        # hK = [Knot(self.scene, self.KnPnts), Const.LeftIn]  # help Knot and input direction
         match self.type:
             case "L":
                 if i == 0:
-                    hK = [self.K[0][0], Const.LeftIn]  # left input
-                    hK[0].color_in_left = fill
+                    hK["Knot"] = self.K[0][0]
+                    hK["Direction"] = Const.LeftIn
+                    self.K[0][0].color_in_left = fill
+                    ref = self.K[0][0].gco + self.dis_left
+                    hK["Rect"]=QGraphicsRectItem(ref.x,ref.y,self.Rd,self.Rd)
+                    # hK = [self.K[0][0], Const.LeftIn]  # left input
+                    # hK[0].color_in_left = fill
                 # k stays same, as knot has two inputs threads
                 elif i == 1:
-                    hK = [self.K[0][0], Const.RightIn]  # right input
-                    hK[0].color_in_right = fill
+                    hK["Knot"] = self.K[0][0]
+                    hK["Direction"] = Const.RightIn
+                    self.K[0][0].color_in_right = fill
+                    ref = self.K[0][0].gco + self.dis_none
+                    hK["Rect"]=QGraphicsRectItem(ref.x,ref.y,self.Rd,self.Rd)
+                    # hK = [self.K[0][0], Const.RightIn]  # right input
+                    # hK[0].color_in_right = fill
                 else:
-                    hK = [self.K[i - 1][0], Const.RightIn]  # right input
-                    hK[0].color_in_left = fill
+                    hK["Knot"] = self.K[0][0]
+                    hK["Direction"] = Const.RightIn
+                    self.K[i - 1][0].color_in_left = fill
+                    ref = self.K[0][0].gco + self.dis_none
+                    hK["Rect"]=QGraphicsRectItem(ref.x,ref.y,self.Rd,self.Rd)
+                    # hK = [self.K[i - 1][0], Const.RightIn]  # right input
+                    # hK[0].color_in_left = fill
                 return (hK)
             case "R":
                 if i < self.w - 1:
-                    hK = [self.K[i][0], Const.LeftIn]  # left input
-                    hK[0].color_in_left = fill
+                    hK["Knot"] = self.K[i][0]
+                    hK["Direction"] = Const.LeftIn
+                    self.K[i][0].color_in_left = fill
+                    # hK = [self.K[i][0], Const.LeftIn]  # left input
+                    # hK[0].color_in_left = fill
                 elif i == self.w - 1:
-                    hK = [self.K[self.w - 1][0], Const.LeftIn]  # left input
-                    hK[0].color_in_left = fill
+                    hK["Knot"] = self.K[self.w - 1][0]
+                    hK["Direction"] = Const.LeftIn
+                    self.K[self.w - 1][0].color_in_left = fill
+                    # hK = [self.K[self.w - 1][0], Const.LeftIn]  # left input
+                    # hK[0].color_in_left = fill
                     # k stays same, as knot has two inputs threads
                 elif i == self.w:
-                    hK = [self.K[self.w - 1][0], Const.RightIn]  # right input
-                    hK[0].color_in_right = fill
+                    hK["Knot"] = self.K[self.w - 1][0]
+                    hK["Direction"] = Const.RightIn
+                    self.K[self.w - 1][0].color_in_right = fill
+                    # hK = [self.K[self.w - 1][0], Const.RightIn]  # right input
+                    # hK[0].color_in_right = fill
                 return (hK)
             case "M":
                 mid = int((self.w - 1) // 2)
                 # print(f"i {i}")
                 if i == 0:
-                    hK = [self.K[0][0], Const.LeftIn]  # left input
-                    hK[0].color_in_left = fill
+                    hK["Knot"] = self.K[0][0]
+                    hK["Direction"] = Const.LeftIn
+                    self.K[0][0].color_in_left = fill
+                    # hK = [self.K[0][0], Const.LeftIn]  # left input
+                    # hK[0].color_in_left = fill
                 elif i == 1:
-                    hK = [self.K[0][0], Const.RightIn]  # right input
-                    hK[0].color_in_right = fill
+                    hK["Knot"] = self.K[0][0]
+                    hK["Direction"] = Const.RightIn
+                    self.K[0][0].color_in_right = fill
+                    # hK = [self.K[0][0], Const.RightIn]  # right input
+                    # hK[0].color_in_right = fill
                 elif i <= mid:
-                    hK = [self.K[i - 1][0], Const.RightIn]  # right input
-                    hK[0].color_in_right = fill
+                    hK["Knot"] = self.K[i - 1][0]
+                    hK["Direction"] = Const.RightIn
+                    self.K[i -1][0].color_in_right = fill
+                    # hK = [self.K[i - 1][0], Const.RightIn]  # right input
+                    # hK[0].color_in_right = fill
                 elif i < self.w - 1:
-                    hK = [self.K[i][0], Const.LeftIn]  # left input
-                    hK[0].color_in_left = fill
+                    hK["Knot"] = self.K[i][0]
+                    hK["Direction"] = Const.LeftIn
+                    self.K[i][0].color_in_left = fill
+                    # hK = [self.K[i][0], Const.LeftIn]  # left input
+                    # hK[0].color_in_left = fill
                 elif i == self.w - 1:
-                    hK = [self.K[self.w - 1][0], Const.LeftIn]  # left input
-                    hK[0].color_in_left = fill
+                    hK["Knot"] = self.K[self.w-1][0]
+                    hK["Direction"] = Const.LeftIn
+                    self.K[self.w-1][0].color_in_left = fill
+                    # hK = [self.K[self.w - 1][0], Const.LeftIn]  # left input
+                    # hK[0].color_in_left = fill
                 elif i == self.w:
-                    hK = [self.K[self.w - 1][0], Const.RightIn]  # right input
-                    hK[0].color_in_right = fill
+                    hK["Knot"] = self.K[self.w - 1][0]
+                    hK["Direction"] = Const.RightIn
+                    self.K[self.w - 1][0].color_in_right = fill
+                    # hK = [self.K[self.w - 1][0], Const.RightIn]  # right input
+                    # hK[0].color_in_right = fill
                 return (hK)
             case "A":
                 mid = int((self.w - 1) // 2)
                 # print(f"mid {mid} i {i}")
                 if i < mid + 1:
-                    hK = [self.K[i][0], Const.LeftIn]  # left input
-                    hK[0].color_in_left = fill
+                    hK["Knot"] = self.K[i][0]
+                    hK["Direction"] = Const.LeftIn
+                    self.K[i][0].color_in_left = fill
+                    # hK = [self.K[i][0], Const.LeftIn]  # left input
+                    # hK[0].color_in_left = fill
                 elif i < self.w + 1:
-                    hK = [self.K[i - 1][0], Const.RightIn]  # right input
-                    hK[0].color_in_right = fill
+                    hK["Knot"] = self.K[i - 1][0]
+                    hK["Direction"] = Const.RightIn
+                    self.K[i - 1][0].color_in_right = fill
+                    # hK = [self.K[i - 1][0], Const.RightIn]  # right input
+                    # hK[0].color_in_right = fill
                 return (hK)
 
     def set_thread_color(self, CS):
