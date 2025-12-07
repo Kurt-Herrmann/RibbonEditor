@@ -31,7 +31,7 @@ class MainWindow(QMainWindow):
         # only for debug *******************************************************
         width = 7
         length = 120
-        type = "L"
+        type = "R"
         # only for debug
         # make sure that width is un even for types M and A
         if width % 2 == 0 and (type == "M" or type == "A"):

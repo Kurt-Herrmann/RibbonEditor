@@ -21,17 +21,17 @@ class Ribbon():
         self.type = type
         self.StartKnot_list = []
         self.Kd = 40  # knot diameter
-        self.Rd = self.Kd * 0.9
+        self.Rd = self.Kd*0.9
         self.Vd = 35  # factor to define horizontal and vertical distance, 1 . touching quads
         self.Ec = 0.5 * self.Kd  # edge clearance ribbon
         self.cBh = 1.4  # horizontal spacing factor for colour bar
         self.cBv = 3  # vertical spacing factor for color bar
         self.cBx = 0  # horizontal offset ribbon to color bar
-        self.f_y = 2  # vertical offset color bar to ribbon
-        self.f_x = 1  # horizontal offset of color bar rectangles for 2 thread knots
+        self.f_y = 2.5  # vertical offset color bar to ribbon
+        self.f_x = 1.75  # horizontal offset of color bar rectangles for 2 thread knots
         self.dis_left = Vector(-self.f_x * self.Vd, -self.f_y * self.Vd)  # x displacement to the left
-        self.dis_none = Vector(0, -self.f_y * self.Vd)  # no x displacement
-        self.dis_right = Vector(self.f_x * self.Vd, -self.f_y * self.Vd)  # x displacement to the right
+        self.dis_none = Vector((self.Kd-self.Rd)/2, -self.f_y * self.Vd)  # no x displacement
+        self.dis_right = Vector(self.f_x * self.Vd +(self.Kd-self.Rd)/2, -self.f_y * self.Vd)  # x displacement to the right
         self.cBy = 0  # vertical offset ribbon to color bar cBm = (cBh * self.Vd * (self.w + 1) + self.Kd) / 2
         self.cplW = 0  # complete width
         self.cplL = 0  # complete length
@@ -402,20 +402,22 @@ class Ribbon():
         for i in range(self.w + 1):
             # rotate start colors
             fill = colors[i]
-
             # draw color bar rectangles
-            ref = Vector(offset, 0)
-            CB_start = Vector(self.Ec, self.Ec)
-            ref1 = ref + CB_start
-            rect = ColorRect(ref1.x, ref1.y, self.Rd, self.Rd, i)
-            rect.setPen(penO)
-            rect.setBrush(fill)
+            # ref = Vector(offset, 0)
+            # CB_start = Vector(self.Ec, self.Ec)
+            # ref1 = ref + CB_start
+            # rect = ColorRect(ref1.x, ref1.y, self.Rd, self.Rd, i)
+            # rect.setPen(penO)
+            # rect.setBrush(fill)
             hK = self.get_start_knot(i, fill)
             # nextKnot = hK[0]  # Knot
             # direction = hK[1]  # input direction to knot
             nextKnot=hK["Knot"]
             direction =hK["Direction"]
-            # print(f"x {nextKnot.co[0]} y {nextKnot.co[1]} gco.x {nextKnot.gco.x:.0f} gco.y {nextKnot.gco.y:.0f}")
+            # print(f"i {i } x {nextKnot.co[0]} y {nextKnot.co[1]} gco.x {nextKnot.gco.x:.0f} gco.y {nextKnot.gco.y:.0f} direction {direction}")
+            rect = hK["Rect"]
+            rect.setPen(penO)
+            rect.setBrush(fill)
             cRect = Vector()
             cRect = self.center(rect)
             cCircle = Vector()
@@ -513,8 +515,8 @@ class Ribbon():
 
     def get_start_knot(self, i, fill):
         nextKnot = Knot(self.scene, self.KnPnts)
-        colorRect = QGraphicsRectItem
-        hK = {"Knot": nextKnot, "Direction": Const.LeftIn, "Rect": ColorRect}
+        colorRect = QGraphicsRectItem()
+        hK = {"Knot": nextKnot, "Direction": Const.LeftIn, "Rect": colorRect}
         ref=Vector()
         # hK = [Knot(self.scene, self.KnPnts), Const.LeftIn]  # help Knot and input direction
         match self.type:
@@ -524,7 +526,9 @@ class Ribbon():
                     hK["Direction"] = Const.LeftIn
                     self.K[0][0].color_in_left = fill
                     ref = self.K[0][0].gco + self.dis_left
-                    hK["Rect"]=QGraphicsRectItem(ref.x,ref.y,self.Rd,self.Rd)
+                    colorRect=QGraphicsRectItem(ref.x,ref.y,self.Rd,self.Rd)
+                    self.rotateRect(colorRect)
+                    hK["Rect"]=colorRect
                     # hK = [self.K[0][0], Const.LeftIn]  # left input
                     # hK[0].color_in_left = fill
                 # k stays same, as knot has two inputs threads
@@ -533,15 +537,19 @@ class Ribbon():
                     hK["Direction"] = Const.RightIn
                     self.K[0][0].color_in_right = fill
                     ref = self.K[0][0].gco + self.dis_none
-                    hK["Rect"]=QGraphicsRectItem(ref.x,ref.y,self.Rd,self.Rd)
+                    colorRect=QGraphicsRectItem(ref.x,ref.y,self.Rd,self.Rd)
+                    self.rotateRect(colorRect)
+                    hK["Rect"]=colorRect
                     # hK = [self.K[0][0], Const.RightIn]  # right input
                     # hK[0].color_in_right = fill
                 else:
-                    hK["Knot"] = self.K[0][0]
+                    hK["Knot"] = self.K[i-1][0]
                     hK["Direction"] = Const.RightIn
                     self.K[i - 1][0].color_in_left = fill
-                    ref = self.K[0][0].gco + self.dis_none
-                    hK["Rect"]=QGraphicsRectItem(ref.x,ref.y,self.Rd,self.Rd)
+                    ref = self.K[i-1][0].gco + self.dis_none
+                    colorRect=QGraphicsRectItem(ref.x,ref.y,self.Rd,self.Rd)
+                    self.rotateRect(colorRect)
+                    hK["Rect"]=colorRect
                     # hK = [self.K[i - 1][0], Const.RightIn]  # right input
                     # hK[0].color_in_left = fill
                 return (hK)
@@ -550,12 +558,18 @@ class Ribbon():
                     hK["Knot"] = self.K[i][0]
                     hK["Direction"] = Const.LeftIn
                     self.K[i][0].color_in_left = fill
+                    colorRect=QGraphicsRectItem(ref.x,ref.y,self.Rd,self.Rd)
+                    self.rotateRect(colorRect)
+                    hK["Rect"]=colorRect
                     # hK = [self.K[i][0], Const.LeftIn]  # left input
                     # hK[0].color_in_left = fill
                 elif i == self.w - 1:
                     hK["Knot"] = self.K[self.w - 1][0]
                     hK["Direction"] = Const.LeftIn
                     self.K[self.w - 1][0].color_in_left = fill
+                    colorRect=QGraphicsRectItem(ref.x,ref.y,self.Rd,self.Rd)
+                    self.rotateRect(colorRect)
+                    hK["Rect"]=colorRect
                     # hK = [self.K[self.w - 1][0], Const.LeftIn]  # left input
                     # hK[0].color_in_left = fill
                     # k stays same, as knot has two inputs threads
@@ -563,6 +577,9 @@ class Ribbon():
                     hK["Knot"] = self.K[self.w - 1][0]
                     hK["Direction"] = Const.RightIn
                     self.K[self.w - 1][0].color_in_right = fill
+                    colorRect=QGraphicsRectItem(ref.x,ref.y,self.Rd,self.Rd)
+                    self.rotateRect(colorRect)
+                    hK["Rect"]=colorRect
                     # hK = [self.K[self.w - 1][0], Const.RightIn]  # right input
                     # hK[0].color_in_right = fill
                 return (hK)
@@ -573,36 +590,54 @@ class Ribbon():
                     hK["Knot"] = self.K[0][0]
                     hK["Direction"] = Const.LeftIn
                     self.K[0][0].color_in_left = fill
+                    colorRect=QGraphicsRectItem(ref.x,ref.y,self.Rd,self.Rd)
+                    self.rotateRect(colorRect)
+                    hK["Rect"]=colorRect
                     # hK = [self.K[0][0], Const.LeftIn]  # left input
                     # hK[0].color_in_left = fill
                 elif i == 1:
                     hK["Knot"] = self.K[0][0]
                     hK["Direction"] = Const.RightIn
                     self.K[0][0].color_in_right = fill
+                    colorRect=QGraphicsRectItem(ref.x,ref.y,self.Rd,self.Rd)
+                    self.rotateRect(colorRect)
+                    hK["Rect"]=colorRect
                     # hK = [self.K[0][0], Const.RightIn]  # right input
                     # hK[0].color_in_right = fill
                 elif i <= mid:
                     hK["Knot"] = self.K[i - 1][0]
                     hK["Direction"] = Const.RightIn
                     self.K[i -1][0].color_in_right = fill
+                    colorRect=QGraphicsRectItem(ref.x,ref.y,self.Rd,self.Rd)
+                    self.rotateRect(colorRect)
+                    hK["Rect"]=colorRect
                     # hK = [self.K[i - 1][0], Const.RightIn]  # right input
                     # hK[0].color_in_right = fill
                 elif i < self.w - 1:
                     hK["Knot"] = self.K[i][0]
                     hK["Direction"] = Const.LeftIn
                     self.K[i][0].color_in_left = fill
+                    colorRect=QGraphicsRectItem(ref.x,ref.y,self.Rd,self.Rd)
+                    self.rotateRect(colorRect)
+                    hK["Rect"]=colorRect
                     # hK = [self.K[i][0], Const.LeftIn]  # left input
                     # hK[0].color_in_left = fill
                 elif i == self.w - 1:
                     hK["Knot"] = self.K[self.w-1][0]
                     hK["Direction"] = Const.LeftIn
                     self.K[self.w-1][0].color_in_left = fill
+                    colorRect=QGraphicsRectItem(ref.x,ref.y,self.Rd,self.Rd)
+                    self.rotateRect(colorRect)
+                    hK["Rect"]=colorRect
                     # hK = [self.K[self.w - 1][0], Const.LeftIn]  # left input
                     # hK[0].color_in_left = fill
                 elif i == self.w:
                     hK["Knot"] = self.K[self.w - 1][0]
                     hK["Direction"] = Const.RightIn
                     self.K[self.w - 1][0].color_in_right = fill
+                    colorRect=QGraphicsRectItem(ref.x,ref.y,self.Rd,self.Rd)
+                    self.rotateRect(colorRect)
+                    hK["Rect"]=colorRect
                     # hK = [self.K[self.w - 1][0], Const.RightIn]  # right input
                     # hK[0].color_in_right = fill
                 return (hK)
@@ -613,15 +648,27 @@ class Ribbon():
                     hK["Knot"] = self.K[i][0]
                     hK["Direction"] = Const.LeftIn
                     self.K[i][0].color_in_left = fill
+                    colorRect=QGraphicsRectItem(ref.x,ref.y,self.Rd,self.Rd)
+                    self.rotateRect(colorRect)
+                    hK["Rect"]=colorRect
                     # hK = [self.K[i][0], Const.LeftIn]  # left input
                     # hK[0].color_in_left = fill
                 elif i < self.w + 1:
                     hK["Knot"] = self.K[i - 1][0]
                     hK["Direction"] = Const.RightIn
                     self.K[i - 1][0].color_in_right = fill
+                    colorRect=QGraphicsRectItem(ref.x,ref.y,self.Rd,self.Rd)
+                    self.rotateRect(colorRect)
+                    hK["Rect"]=colorRect
                     # hK = [self.K[i - 1][0], Const.RightIn]  # right input
                     # hK[0].color_in_right = fill
                 return (hK)
+
+    def rotateRect(self,Rect):
+        # find center
+        center=self.center(Rect)
+        Rect.setTransformOriginPoint(center.x,center.y)
+        Rect.setRotation(45)
 
     def set_thread_color(self, CS):
         # CS color select
