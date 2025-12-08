@@ -819,11 +819,16 @@ class Ribbon():
                     self.K[x][y].co = knot_data["co"]
 
         # Recalculate all thread colors through the pattern
+        pen = QPen()
+        pen.setWidth(self.thW)
         for i in range(len(self.StartKnot_list)):
             CS = self.StartKnot_list[i]
             color = CS.color
             Kh = CS.Knot
             direction = CS.direction
+            pen.setColor(color)
+            line = CS.line
+            line.setPen(pen)
             Kh.set_thread(color, direction, self.thW)
 
         # Run twice to ensure all colors propagate
@@ -832,6 +837,9 @@ class Ribbon():
             color = CS.color
             Kh = CS.Knot
             direction = CS.direction
+            pen.setColor(color)
+            line = CS.line
+            line.setPen(pen)
             Kh.set_thread(color, direction, self.thW)
 
     def get_ribbon(self):
