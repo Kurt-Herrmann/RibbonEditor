@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+from datetime import datetime
 
 from PyQt6.QtGui import QPainter, QKeySequence, QAction
 from PyQt6.QtWidgets import (QApplication, QGraphicsScene, QMainWindow, QGraphicsView,
@@ -56,22 +57,24 @@ class MainWindow(QMainWindow):
         # only for debug ***********************************************************
 
     def closeEvent(self, e):
-        # if not text.document().isModified():
-        #     return
-        # answer = QMessageBox.question(
-        #     window, None,
-        #     "You have unsaved changes. Save before closing?",
-        #     QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel
-        # )
-        # if answer & QMessageBox.Save:
-        #     save()
-        #     if text.document().isModified():
-        #         # This happens when the user closes the Save As... dialog.
-        #         # We do not want to close the window in this case because it
-        #         # would throw away unsaved changes.
-        #         e.ignore()
-        # elif answer & QMessageBox.Cancel:
-        #     e.ignore()
+        if not self.R.changed:
+            return
+
+        answer = QMessageBox.question(
+            self,
+            "Unsaved Changes",
+            "You have unsaved changes. Save before closing?",
+            QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Discard | QMessageBox.StandardButton.Cancel
+        )
+        if answer == QMessageBox.StandardButton.Save:
+            self.save_as()
+            if self.R.changed:
+                # This happens when the user closes the Save As... dialog.
+                # We do not want to close the window in this case because it
+                # would throw away unsaved changes.
+                e.ignore()
+        elif answer == QMessageBox.StandardButton.Cancel:
+            e.ignore()
         return
 
     def new_file(self, checked=False):
@@ -125,6 +128,7 @@ class MainWindow(QMainWindow):
             width = ribbon_data.get("width", 5)
             length = ribbon_data.get("length", 10)
             ribbon_type = ribbon_data.get("type", "L")
+            saved_filename = data.get("filename", os.path.basename(path))
 
             # Create new ribbon with the saved dimensions
             self.R = Ribbon(self.scene, width, length, ribbon_type)
@@ -140,7 +144,7 @@ class MainWindow(QMainWindow):
 
             # Update file path and window title
             self.file_path = path
-            self.setWindowTitle(f"Ribbon Editor - {os.path.basename(path)}")
+            self.setWindowTitle(f"Ribbon Editor - {saved_filename}")
 
         except Exception as e:
             QMessageBox.critical(
@@ -159,9 +163,16 @@ class MainWindow(QMainWindow):
             self.save_as()
         else:
             try:
-                data = self.R.to_dict()
+                ribbon_data = self.R.to_dict()
+                # Create new dict with filename and datetime first
+                data = {
+                    "filename": os.path.basename(self.file_path),
+                    "datetime": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                    **ribbon_data
+                }
                 with open(self.file_path, "w") as f:
                     json.dump(data, f, indent=2)
+                self.R.changed = False
                 self.setWindowTitle(f"Ribbon Editor - {os.path.basename(self.file_path)}")
             except Exception as e:
                 QMessageBox.critical(
@@ -242,6 +253,7 @@ def main():
     help_menu.addAction(about_action)
     about_action.triggered.connect(window.show_about_dialog)
 
+    window.resize(300,180)
     window.show()
     # window.setCentralWidget(self.view)
     window.scene.update()

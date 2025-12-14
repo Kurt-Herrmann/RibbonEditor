@@ -30,6 +30,7 @@ class Ribbon():
         self.f_y = 2.3  # vertical offset of color bar rectangles to related knot
         self.f_x = 1.6  # horizontal offset of color bar rectangles for 2 thread knots and type A
         self.sqrt_2 = math.sqrt(2)
+        self.changed = False
 
         # needed y-distance for color bar
         if self.type == "A":
@@ -769,7 +770,6 @@ class Ribbon():
     def to_dict(self):
         """Extract all ribbon data for saving to file"""
         return {
-            "version": "1.0",
             "ribbon": {
                 "width": self.w,
                 "length": self.l,
@@ -781,7 +781,6 @@ class Ribbon():
             ],
             "knots": [[
                 {
-                    "co": self.K[x][y].co,
                     "type": self.K[x][y].type.name,
                     "left_thread_vis": self.K[x][y].left_thread_vis
                 }
@@ -1475,6 +1474,7 @@ class KnotCircle(QGraphicsEllipseItem, SceneObjectBase):
 
     def change_thread_direction(self):
         R = self.get_ribbon()
+        R.changed = True
         # toggle knot type
         if self.knot.type == Const.Nk:
             self.knot.type = Const.Rk
@@ -1552,6 +1552,7 @@ class ColorRect(QGraphicsRectItem, SceneObjectBase):
         # print(f"New color selected: {new_color.name()}")
         scene = self.scene()
         R = self.get_ribbon()
+        R.changed = True
         CS = R.StartKnot_list[self.index]
         CS.color = new_color
         Kh = getattr(CS, "Knot", None)
