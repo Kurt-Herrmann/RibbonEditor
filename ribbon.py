@@ -34,13 +34,13 @@ class Ribbon():
 
         # needed y-distance for color bar
         if self.type == "A":
-            self.cBy = - self.w // 2 * self.Vd + (self.f_y -0.3) * self.Vd + self.sqrt_2 * self.Rd
+            self.cBy = - self.w // 2 * self.Vd + (self.f_y - 0.3) * self.Vd + self.sqrt_2 * self.Rd
         else:
             self.cBy = self.f_y * self.Vd
 
         self.cBx = self.f_x * self.Vd
 
-        self.cplW = ((self.w - 1) * self.Vd + self.Kd  +
+        self.cplW = ((self.w - 1) * self.Vd + self.Kd +
                      2 * self.sqrt_2 * self.Rd + self.f_x * self.Vd)  # complete width
 
         self.cplL = 0  # complete length

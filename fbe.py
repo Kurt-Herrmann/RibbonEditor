@@ -3,9 +3,17 @@ import os
 import sys
 from datetime import datetime
 
+from PyQt6.QtCore import QUrl
 from PyQt6.QtGui import QPainter, QKeySequence, QAction
 from PyQt6.QtWidgets import (QApplication, QGraphicsScene, QMainWindow, QGraphicsView,
-                             QDialog, QMessageBox, QSizePolicy, QFileDialog)
+                             QDialog, QMessageBox, QSizePolicy, QFileDialog, QVBoxLayout)
+
+try:
+    from PyQt6.QtWebEngineWidgets import QWebEngineView
+    WEBENGINE_AVAILABLE = True
+except ImportError:
+    from PyQt6.QtWidgets import QTextBrowser
+    WEBENGINE_AVAILABLE = False
 
 from ribbon import *
 from ribbon_dialog import Ui_Dialog
@@ -22,8 +30,8 @@ class MainWindow(QMainWindow):
                                 QSizePolicy.Policy.Expanding)
         self.R = None
         self.file_path = None
-        self.window_w = 300
-        self.window_h = 800
+        # self.window_w = 300
+        # self.window_h = 800
         self.window_edge = 25
 
         self.setCentralWidget(self.view)
@@ -200,15 +208,58 @@ class MainWindow(QMainWindow):
             self.file_path = path
             self.save()
 
-    def show_about_dialog():
-        text = "<center>" \
-               "<h1>Text Editor</h1>" \
-               "&#8291;" \
-               "<img src=icon.svg>" \
-               "</center>" \
-               "<p>Version 31.4.159.265358<br/>" \
-               "Copyright &copy; Company Inc.</p>"
-        QMessageBox.about(window, "About Text Editor", text)
+    def show_about_dialog(self):
+        text = ("Freundschafts-Band-Editor\n"
+                "Version 1.0\n"
+                "2025.12.16\n"
+                "Autor: Kurt Herrmann")
+        QMessageBox.about(self, "About Ribbon Editor", text)
+
+
+
+    def show_help_dialog(self):
+        """Display help file in a dialog"""
+        help_file = os.path.join(os.path.dirname(__file__), "resources", "helptexts", "Hilfetext_Ge.htm")
+
+        if not os.path.exists(help_file):
+            QMessageBox.warning(
+                self,
+                "Help File Not Found",
+                f"Could not find help file: {help_file}"
+            )
+            return
+
+        try:
+            # Create dialog to display help
+            help_dialog = QDialog(self)
+            help_dialog.setWindowTitle("Help")
+            help_dialog.resize(800, 600)
+
+            # Create layout
+            layout = QVBoxLayout()
+
+            # Use QWebEngineView if available for full HTML rendering, otherwise QTextBrowser
+            if WEBENGINE_AVAILABLE:
+                browser = QWebEngineView()
+                file_url = QUrl.fromLocalFile(help_file)
+                browser.setUrl(file_url)
+            else:
+                browser = QTextBrowser()
+                browser.setOpenExternalLinks(True)
+                file_url = QUrl.fromLocalFile(help_file)
+                browser.setSource(file_url)
+
+            layout.addWidget(browser)
+            help_dialog.setLayout(layout)
+            help_dialog.exec()
+
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Error Opening Help",
+                f"Could not open help file: {str(e)}"
+            )
+
 
 
 def show_warning_messagebox(text):
@@ -249,13 +300,16 @@ def main():
     close.triggered.connect(window.close)
 
     help_menu = window.menuBar().addMenu("&Help")
+    help_action = QAction("&Help")
+    help_menu.addAction(help_action)
+    help_action.triggered.connect(window.show_help_dialog)
+
     about_action = QAction("&About")
     help_menu.addAction(about_action)
     about_action.triggered.connect(window.show_about_dialog)
 
     window.resize(300,180)
     window.show()
-    # window.setCentralWidget(self.view)
     window.scene.update()
     window.view.show()
 
