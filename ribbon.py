@@ -1469,6 +1469,8 @@ class KnotCircle(QGraphicsEllipseItem, SceneObjectBase):
     #     print("Right-click: open context menu / do something else.")
 
     def toggle_knot_color(self):
+        R = self.get_ribbon()
+        R.changed = True
         self.knot.left_thread_vis = not self.knot.left_thread_vis
         self.knot.set_knot_color()
 

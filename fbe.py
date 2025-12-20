@@ -10,9 +10,11 @@ from PyQt6.QtWidgets import (QApplication, QGraphicsScene, QMainWindow, QGraphic
 
 try:
     from PyQt6.QtWebEngineWidgets import QWebEngineView
+
     WEBENGINE_AVAILABLE = True
 except ImportError:
     from PyQt6.QtWidgets import QTextBrowser
+
     WEBENGINE_AVAILABLE = False
 
 from ribbon import *
@@ -85,7 +87,20 @@ class MainWindow(QMainWindow):
             e.ignore()
         return
 
-    def new_file(self, checked=False):
+    def new_file(self):
+        # def new_file(self, checked=False):
+        if self.R:  # is there already an active ribbon ?
+            if self.R.changed:
+                answer = QMessageBox.question(
+                    self,
+                    "Unsaved Changes",
+                    "You have unsaved changes. Save before closing?",
+                    QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Discard | QMessageBox.StandardButton.Cancel
+                )
+                if answer == QMessageBox.StandardButton.Save:
+                    self.save_as()
+                    self.R.changed = False
+            self.scene.clear()
 
         dialog = QDialog()
         ui = Ui_Dialog()
@@ -209,13 +224,18 @@ class MainWindow(QMainWindow):
             self.save()
 
     def show_about_dialog(self):
-        text = ("Freundschafts-Band-Editor\n"
-                "Version 1.0\n"
-                "2025.12.16\n"
-                "Autor: Kurt Herrmann")
+        # Get absolute path to the about image
+        about_gif = os.path.join(os.path.dirname(__file__), "resources", "gifs", "RBE_About.gif")
+        about_gif_url = QUrl.fromLocalFile(about_gif).toString()
+
+        text = "<center>" \
+               "<h1>Ribbon Editor</h1>" \
+               "<br/>" \
+               f"<img src='{about_gif_url}'>" \
+               "<p>Date 2025.12.20 Version 1.0<br/>" \
+               "Copyright &copy; kurt.herrmann@gmx.at</p>" \
+               "</center>"
         QMessageBox.about(self, "About Ribbon Editor", text)
-
-
 
     def show_help_dialog(self):
         """Display help file in a dialog"""
@@ -259,7 +279,6 @@ class MainWindow(QMainWindow):
                 "Error Opening Help",
                 f"Could not open help file: {str(e)}"
             )
-
 
 
 def show_warning_messagebox(text):
@@ -308,7 +327,7 @@ def main():
     help_menu.addAction(about_action)
     about_action.triggered.connect(window.show_about_dialog)
 
-    window.resize(300,180)
+    window.resize(300, 180)
     window.show()
     window.scene.update()
     window.view.show()
