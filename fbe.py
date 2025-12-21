@@ -229,12 +229,15 @@ class MainWindow(QMainWindow):
         about_gif_url = QUrl.fromLocalFile(about_gif).toString()
 
         text = "<center>" \
-               "<h1>Ribbon Editor</h1>" \
+               "<h2>Ribbon Editor</h2>" \
                "<br/>" \
                f"<img src='{about_gif_url}'>" \
-               "<p>Date 2025.12.20 Version 1.0<br/>" \
-               "Copyright &copy; kurt.herrmann@gmx.at</p>" \
-               "</center>"
+               "<h4>Date 2025.12.20&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Version 1.0<br/>" \
+               "<br/>" \
+               "Copyright &copy; kurt.herrmann@gmx.at</h4>" \
+               "</center>" \
+        # About=QMessageBox.about.setBaseSize(400,300)
+        # About.setText(text)
         QMessageBox.about(self, "About Ribbon Editor", text)
 
     def show_help_dialog(self):
