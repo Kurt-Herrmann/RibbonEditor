@@ -3,8 +3,8 @@ import os
 import sys
 from datetime import datetime
 
-from PyQt6.QtCore import QUrl
-from PyQt6.QtGui import QPainter, QKeySequence, QAction
+from PyQt6.QtCore import QUrl, Qt, QPoint
+from PyQt6.QtGui import QPainter, QKeySequence, QAction, QTransform
 from PyQt6.QtWidgets import (QApplication, QGraphicsScene, QMainWindow, QGraphicsView,
                              QDialog, QMessageBox, QSizePolicy, QFileDialog, QVBoxLayout)
 
@@ -21,12 +21,113 @@ from ribbon import *
 from ribbon_dialog import Ui_Dialog
 
 
+class ZoomableGraphicsView(QGraphicsView):
+    """QGraphicsView with mouse wheel zoom functionality."""
+
+    # Zoom constraints
+    MIN_ZOOM = 0.25
+    MAX_ZOOM = 4.0
+    ZOOM_INCREMENT = 1.1  # 10% per wheel click
+
+    def __init__(self, scene, parent=None):
+        super().__init__(scene, parent)
+        self.zoom_factor = 1.0
+        self.panning = False
+        self.pan_start_pos = QPoint()
+
+    def wheelEvent(self, event):
+        """Handle mouse wheel for vertical scroll or zoom with Ctrl."""
+        delta = event.angleDelta().y()
+        if delta == 0:
+            return
+
+        # Check if Ctrl is pressed - if so, zoom instead of scrolling
+        if event.modifiers() & Qt.KeyboardModifier.ControlModifier:
+            # Get current cursor position in scene coordinates
+            cursor_pos = event.position()
+            scene_pos = self.mapToScene(cursor_pos.toPoint())
+
+            # Determine zoom factor for this operation
+            zoom_in = delta > 0
+            new_zoom = self.zoom_factor * (self.ZOOM_INCREMENT if zoom_in else 1.0 / self.ZOOM_INCREMENT)
+
+            # Enforce zoom limits
+            new_zoom = max(self.MIN_ZOOM, min(new_zoom, self.MAX_ZOOM))
+
+            # If zoom didn't change (hit limit), don't proceed
+            if new_zoom == self.zoom_factor:
+                event.accept()
+                return
+
+            # Apply transformation with zoom-to-cursor behavior
+            scale_factor = new_zoom / self.zoom_factor
+            self.zoom_factor = new_zoom
+
+            # Create new transform with scaling
+            transform = QTransform()
+            transform.scale(self.zoom_factor, self.zoom_factor)
+            self.setTransform(transform)
+
+            # Center on the scene position to keep it under cursor
+            self.centerOn(scene_pos)
+
+            event.accept()
+        else:
+            # Scroll vertically when Ctrl is not pressed
+            self.verticalScrollBar().setValue(
+                self.verticalScrollBar().value() - delta
+            )
+            event.accept()
+
+    def reset_zoom(self):
+        """Reset zoom to 1:1 and restore default view."""
+        self.resetTransform()
+        self.zoom_factor = 1.0
+
+    def mousePressEvent(self, event):
+        """Handle mouse press for panning with middle button."""
+        if event.button() == Qt.MouseButton.MiddleButton:
+            self.panning = True
+            self.pan_start_pos = event.pos()
+            self.setCursor(Qt.CursorShape.ClosedHandCursor)
+            event.accept()
+        else:
+            super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        """Handle mouse move for panning."""
+        if self.panning:
+            # Calculate the delta movement
+            delta = event.pos() - self.pan_start_pos
+            self.pan_start_pos = event.pos()
+
+            # Update scrollbars to pan the view
+            self.horizontalScrollBar().setValue(
+                self.horizontalScrollBar().value() - delta.x()
+            )
+            self.verticalScrollBar().setValue(
+                self.verticalScrollBar().value() - delta.y()
+            )
+            event.accept()
+        else:
+            super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        """Handle mouse release to stop panning."""
+        if event.button() == Qt.MouseButton.MiddleButton:
+            self.panning = False
+            self.setCursor(Qt.CursorShape.ArrowCursor)
+            event.accept()
+        else:
+            super().mouseReleaseEvent(event)
+
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
         self.scene = QGraphicsScene(self)
-        self.view = QGraphicsView(self.scene)
+        self.view = ZoomableGraphicsView(self.scene)
         self.view.setRenderHint(QPainter.RenderHint.Antialiasing)
         self.view.setSizePolicy(QSizePolicy.Policy.Expanding,
                                 QSizePolicy.Policy.Expanding)
@@ -320,6 +421,14 @@ def main():
     close = QAction("&Close")
     menu.addAction(close)
     close.triggered.connect(window.close)
+
+    # View menu
+    view_menu = window.menuBar().addMenu("&View")
+
+    reset_zoom_action = QAction("&Reset Zoom")
+    view_menu.addAction(reset_zoom_action)
+    reset_zoom_action.triggered.connect(window.view.reset_zoom)
+    reset_zoom_action.setShortcut("Ctrl+0")
 
     help_menu = window.menuBar().addMenu("&Help")
     help_action = QAction("&Help")
