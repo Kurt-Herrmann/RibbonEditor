@@ -3,8 +3,8 @@ import os
 import sys
 from datetime import datetime
 
-from PyQt6.QtCore import QUrl, Qt, QPoint
-from PyQt6.QtGui import QPainter, QKeySequence, QAction, QTransform
+from PyQt6.QtCore import QUrl, Qt, QPoint, QMarginsF, QSizeF
+from PyQt6.QtGui import QPainter, QKeySequence, QAction, QTransform, QPdfWriter, QPageSize, QPageLayout, QFont
 from PyQt6.QtWidgets import (QApplication, QGraphicsScene, QMainWindow, QGraphicsView,
                              QDialog, QMessageBox, QSizePolicy, QFileDialog, QVBoxLayout)
 
@@ -324,9 +324,146 @@ class MainWindow(QMainWindow):
             self.file_path = path
             self.save()
 
+    def export_to_pdf(self):
+        """Export the current ribbon pattern to PDF"""
+        if self.R is None:
+            QMessageBox.warning(self, "No Ribbon", "Please create a ribbon first.")
+            return
+
+        # Default filename based on ribbon properties
+        default_name = f"ribbon_{self.R.type}_{self.R.w}x{self.R.l}.pdf"
+
+        # File dialog
+        path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Export to PDF",
+            default_name,
+            "PDF Files (*.pdf);;All Files (*)"
+        )
+
+        if not path:
+            return
+
+        # Add .pdf extension if missing
+        if not path.endswith('.pdf'):
+            path += '.pdf'
+
+        try:
+            # Header configuration
+            header_height = 0
+            header_text_lines = []
+
+            if self.file_path is not None:
+                # File is saved, add header with filename, date, and time
+                filename = os.path.basename(self.file_path)
+                current_datetime = datetime.now()
+                date_str = current_datetime.strftime("%Y-%m-%d")
+                time_str = current_datetime.strftime("%H:%M")
+
+                header_text_lines = [
+                    f"Filename: {filename}",
+                    f"Date: {date_str}  Time: {time_str}"
+                ]
+
+                # Calculate header height (2 lines of text + margins)
+                # Using Cambria 11pt for all text
+                header_height = 70  # pixels (2 lines + margin)
+
+            # Get scene dimensions
+            scene_width = self.R.cplW
+            scene_height = self.R.cplL
+
+            # Calculate total content height (scene + header if applicable)
+            total_content_height = scene_height + header_height
+
+            # Create PDF writer with custom page size
+            writer = QPdfWriter(path)
+
+            # Set resolution (300 DPI for quality)
+            writer.setResolution(300)
+
+            # Calculate page size in points (assuming 96 DPI for scene coordinates)
+            # Convert pixels to points: points = pixels * 72 / 96
+            margin_mm = 10
+            margin_points = margin_mm * 72 / 25.4  # Convert mm to points
+
+            page_width_points = (scene_width * 72 / 96) + (2 * margin_points)
+            page_height_points = (total_content_height * 72 / 96) + (2 * margin_points)
+
+            # Create custom page size
+            page_size = QPageSize(QSizeF(page_width_points, page_height_points),
+                                 QPageSize.Unit.Point)
+            writer.setPageSize(page_size)
+            writer.setPageMargins(QMarginsF(margin_mm, margin_mm, margin_mm, margin_mm),
+                                 QPageLayout.Unit.Millimeter)
+
+            # Create painter
+            painter = QPainter(writer)
+
+            # Get the paint rectangle (area within margins)
+            page_rect = writer.pageLayout().paintRectPixels(writer.resolution())
+
+            # Calculate current Y position for rendering
+            current_y = page_rect.top()
+
+            # Draw header if file is saved
+            if header_text_lines:
+                # Set font: Cambria 11pt
+                font = QFont("Cambria", 11)
+                painter.setFont(font)
+
+                # Draw filename
+                text_rect = painter.boundingRect(
+                    int(page_rect.left()),
+                    int(current_y),
+                    int(page_rect.width()),
+                    100,
+                    Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop,
+                    header_text_lines[0]
+                )
+                painter.drawText(text_rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop,
+                               header_text_lines[0])
+                current_y += text_rect.height() + 5
+
+                # Draw date and time
+                text_rect = painter.boundingRect(
+                    int(page_rect.left()),
+                    int(current_y),
+                    int(page_rect.width()),
+                    100,
+                    Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop,
+                    header_text_lines[1]
+                )
+                painter.drawText(text_rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop,
+                               header_text_lines[1])
+                current_y += text_rect.height() + 30  # Add margin below header
+
+            # Calculate target rectangle for scene rendering
+            scene_target_rect = page_rect.toRectF()
+            scene_target_rect.setTop(current_y)
+            scene_target_rect.setHeight(page_rect.height() - (current_y - page_rect.top()))
+
+            # Render the scene
+            self.scene.render(painter, target=scene_target_rect, source=self.scene.sceneRect())
+
+            painter.end()
+
+            QMessageBox.information(
+                self,
+                "Export Successful",
+                f"Pattern exported to:\n{path}"
+            )
+
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Export Failed",
+                f"Could not export to PDF:\n{str(e)}"
+            )
+
     def show_about_dialog(self):
         # Get absolute path to the about image
-        about_gif = os.path.join(os.path.dirname(__file__), "resources", "gifs", "RBE_About.gif")
+        about_gif = os.path.join(os.path.dirname(__file__), "resources", "gifs", "RBE_About_1.gif")
         about_gif_url = QUrl.fromLocalFile(about_gif).toString()
 
         text = "<center>" \
@@ -417,6 +554,10 @@ def main():
     save_as_action = QAction("Save &As...")
     menu.addAction(save_as_action)
     save_as_action.triggered.connect(window.save_as)
+
+    export_pdf_action = QAction("Export to &PDF...")
+    menu.addAction(export_pdf_action)
+    export_pdf_action.triggered.connect(window.export_to_pdf)
 
     close = QAction("&Close")
     menu.addAction(close)
