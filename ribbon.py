@@ -77,6 +77,8 @@ class Ribbon():
                 self.set_type_M()
             case "A":
                 self.set_type_A()
+            case "W":
+                self.set_type_W()
             case _:
                 print("Type Error !")
                 exit()
@@ -234,6 +236,89 @@ class Ribbon():
         outline = QGraphicsRectItem(0, 0, self.cplW, self.cplL)
         self.scene.addItem(outline)
 
+    def set_type_W(self):
+
+        # w = 4 * d + 1 : 5, 9, 13, 17, 21, 25, 29, ...
+
+        # calculate x values  example w = 13 d = 3
+        d = int((self.w - 1) / 4 )
+        # d = 3
+        x0 = 0  # x0 = 0
+        x1 = d  # x1 = 3
+        x2 = x1 + d  # x2 = 6
+        x3 = x2 + d  # x3 = 9
+        x4 = x3 + d  # x4 = 12
+
+        self.make_knot_links(True, x0, x1)  # 0 - 3
+        self.make_knot_links(False, x1 + 1, x2)  # 4 - 6
+        self.make_knot_links(True, x2 + 1, x3)  # 7 - 9
+        self.make_knot_links(False, x3 + 1, x4)  # 10 - 12
+        self.set_type(x1, Const.Rk)  # 3
+        self.set_type(x2, Const.Rk)  # 6
+        self.set_type(x3, Const.Rk)  # 9
+        self.set_visible(x0, x1, Const.LeftThrdVis)  # 0 - 3
+        self.set_visible(x1 + 1, x2, Const.RightThrdVis)  # 4 - 6
+        self.set_visible(x2 + 1, x3, Const.LeftThrdVis)  # 7 - 9
+        self.set_visible(x3 + 1, x4, Const.RightThrdVis)  # 10 - 12
+        self.fix_middle_knot_links("M", x1)  # 3 behaves like type M
+        self.fix_middle_knot_links("A", x2)  # 6 behaves like type A
+        self.fix_middle_knot_links("M", x3)  # 9 behaves like type M
+
+        # set end knot types and next knot in one direction
+        self.set_end_knots(True, x0, x1)  # 0 - 3
+        self.set_end_knots(False, x1 + 1, x2)  # 4 - 6
+        self.set_end_knots(True, x2 + 1, x3)  # 7 - 9
+        self.set_end_knots(False, x3 + 1, x4)  # 10 - 12
+
+        # normal direction
+        for y in range(self.l):
+            for x in range(x0, x1):
+                self.K[x][y].gco.x = self.cBx + self.Ec + self.Vd * x
+                self.K[x][y].gco.y = self.cBy + self.Ec + self.Vd * (x + 2 * y)
+                print(f"normal, x {x} y {y}  strtK {self.K[x][y].strtK} endK {self.K[x][y].endK}, "
+                      f"type {self.K[x][y].type} eKL {self.K[x][y].edgeKL} eKR {self.K[x][y].edgeKR} "
+                      f"gco.x {self.K[x][y].gco.x:.0f} gco.y {self.K[x][y].gco.y:.0f}")
+                color = QColor("black")
+                self.K[x][y].draw_graphic_items(color, self.thW, self.Kd, self.scene)
+
+        # reverse direction
+        for y in range(self.l):
+            for x in range(x1 + 1, x2):
+                self.K[x][y].gco.x = self.cBx + self.Ec + self.Vd * x
+                self.K[x][y].gco.y = self.cBy + self.Ec + self.Vd * (self.w - 1 - x + 2 * y)
+                print(f"normal, x {x} y {y}  strtK {self.K[x][y].strtK} endK {self.K[x][y].endK}, "
+                      f"type {self.K[x][y].type} eKL {self.K[x][y].edgeKL} eKR {self.K[x][y].edgeKR} "
+                      f"gco.x {self.K[x][y].gco.x:.0f} gco.y {self.K[x][y].gco.y:.0f}")
+                color = QColor("black")
+                self.K[x][y].draw_graphic_items(color, self.thW, self.Kd, self.scene)
+
+        # normal direction
+        for y in range(self.l):
+            for x in range(x2 + 1, x3):
+                self.K[x][y].gco.x = self.cBx + self.Ec + self.Vd * x
+                self.K[x][y].gco.y = self.cBy + self.Ec + self.Vd * (x + 2 * y)
+                print(f"normal, x {x} y {y}  strtK {self.K[x][y].strtK} endK {self.K[x][y].endK}, "
+                      f"type {self.K[x][y].type} eKL {self.K[x][y].edgeKL} eKR {self.K[x][y].edgeKR} "
+                      f"gco.x {self.K[x][y].gco.x:.0f} gco.y {self.K[x][y].gco.y:.0f}")
+                color = QColor("black")
+                self.K[x][y].draw_graphic_items(color, self.thW, self.Kd, self.scene)
+
+                # reverse direction
+        for y in range(x3 + 1, x4):
+            for x in range(self.w // 2 + 1, self.w):
+                self.K[x][y].gco.x = self.cBx + self.Ec + self.Vd * x
+                self.K[x][y].gco.y = self.cBy + self.Ec + self.Vd * (self.w - 1 - x + 2 * y)
+                print(f"normal, x {x} y {y}  strtK {self.K[x][y].strtK} endK {self.K[x][y].endK}, "
+                      f"type {self.K[x][y].type} eKL {self.K[x][y].edgeKL} eKR {self.K[x][y].edgeKR} "
+                      f"gco.x {self.K[x][y].gco.x:.0f} gco.y {self.K[x][y].gco.y:.0f}")
+                color = QColor("black")
+                self.K[x][y].draw_graphic_items(color, self.thW, self.Kd, self.scene)
+
+        # self.cplW = self.w * self.cBh * self.Vd + self.Rd + 2 * self.Ec
+        self.cplL = (self.w - 1) / 2 * self.Vd + (self.l - 1) * 2 * self.Vd + 2 * self.Kd + self.cBy
+        outline = QGraphicsRectItem(0, 0, self.cplW, self.cplL)
+        self.scene.addItem(outline)
+
     def make_empty_ribbon(self):
         self.K = [[Knot(self.scene, self.KnPnts) for _ in range(self.l)] for _ in range(self.w)]
 
@@ -314,10 +399,10 @@ class Ribbon():
             if not self.K[x][y].endK:
                 nKtoR = Knot(self.scene, self.KnPnts)
                 nKtoL = Knot(self.scene, self.KnPnts)
-                if self.type == "M":
+                if type == "M":
                     nKtoR = self.K[x + 1][y + 1]
                     nKtoL = self.K[x - 1][y + 1]
-                elif self.type == "A":
+                elif type == "A":
                     nKtoR = self.K[x + 1][y]
                     nKtoL = self.K[x - 1][y]
                 else:

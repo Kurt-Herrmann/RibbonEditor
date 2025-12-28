@@ -7,6 +7,7 @@
 
 
 import os
+
 from PyQt6 import QtCore, QtGui, QtWidgets
 
 
@@ -27,7 +28,8 @@ class Ui_Dialog(object):
         self.horizontalSlider.setObjectName("horizontalSlider")
         self.buttonBox = QtWidgets.QDialogButtonBox(parent=Dialog)
         self.buttonBox.setGeometry(QtCore.QRect(40, 220, 160, 26))
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.StandardButton.Cancel|QtWidgets.QDialogButtonBox.StandardButton.Ok)
+        self.buttonBox.setStandardButtons(
+            QtWidgets.QDialogButtonBox.StandardButton.Cancel | QtWidgets.QDialogButtonBox.StandardButton.Ok)
         self.buttonBox.setObjectName("buttonBox")
         self.layoutWidget = QtWidgets.QWidget(parent=Dialog)
         self.layoutWidget.setGeometry(QtCore.QRect(0, 0, 2, 2))
@@ -71,8 +73,10 @@ class Ui_Dialog(object):
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.toolButton_L = QtWidgets.QToolButton(parent=self.groupBox_2)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(os.path.join(gifs_dir, "L_des.gif")), QtGui.QIcon.Mode.Active, QtGui.QIcon.State.Off)
-        icon.addPixmap(QtGui.QPixmap(os.path.join(gifs_dir, "L_sel.gif")), QtGui.QIcon.Mode.Active, QtGui.QIcon.State.On)
+        icon.addPixmap(QtGui.QPixmap(os.path.join(gifs_dir, "L_des.gif")), QtGui.QIcon.Mode.Active,
+                       QtGui.QIcon.State.Off)
+        icon.addPixmap(QtGui.QPixmap(os.path.join(gifs_dir, "L_sel.gif")), QtGui.QIcon.Mode.Active,
+                       QtGui.QIcon.State.On)
         self.toolButton_L.setIcon(icon)
         self.toolButton_L.setIconSize(QtCore.QSize(48, 48))
         self.toolButton_L.setCheckable(True)
@@ -80,8 +84,10 @@ class Ui_Dialog(object):
         self.horizontalLayout.addWidget(self.toolButton_L)
         self.toolButton_R = QtWidgets.QToolButton(parent=self.groupBox_2)
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(os.path.join(gifs_dir, "R_des.gif")), QtGui.QIcon.Mode.Active, QtGui.QIcon.State.Off)
-        icon1.addPixmap(QtGui.QPixmap(os.path.join(gifs_dir, "R_sel.gif")), QtGui.QIcon.Mode.Active, QtGui.QIcon.State.On)
+        icon1.addPixmap(QtGui.QPixmap(os.path.join(gifs_dir, "R_des.gif")), QtGui.QIcon.Mode.Active,
+                        QtGui.QIcon.State.Off)
+        icon1.addPixmap(QtGui.QPixmap(os.path.join(gifs_dir, "R_sel.gif")), QtGui.QIcon.Mode.Active,
+                        QtGui.QIcon.State.On)
         self.toolButton_R.setIcon(icon1)
         self.toolButton_R.setIconSize(QtCore.QSize(48, 48))
         self.toolButton_R.setCheckable(True)
@@ -89,8 +95,10 @@ class Ui_Dialog(object):
         self.horizontalLayout.addWidget(self.toolButton_R)
         self.toolButton_M = QtWidgets.QToolButton(parent=self.groupBox_2)
         icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap(os.path.join(gifs_dir, "M_des.gif")), QtGui.QIcon.Mode.Active, QtGui.QIcon.State.Off)
-        icon2.addPixmap(QtGui.QPixmap(os.path.join(gifs_dir, "M_sel.gif")), QtGui.QIcon.Mode.Active, QtGui.QIcon.State.On)
+        icon2.addPixmap(QtGui.QPixmap(os.path.join(gifs_dir, "M_des.gif")), QtGui.QIcon.Mode.Active,
+                        QtGui.QIcon.State.Off)
+        icon2.addPixmap(QtGui.QPixmap(os.path.join(gifs_dir, "M_sel.gif")), QtGui.QIcon.Mode.Active,
+                        QtGui.QIcon.State.On)
         self.toolButton_M.setIcon(icon2)
         self.toolButton_M.setIconSize(QtCore.QSize(48, 48))
         self.toolButton_M.setCheckable(True)
@@ -99,8 +107,10 @@ class Ui_Dialog(object):
         self.horizontalLayout.addWidget(self.toolButton_M)
         self.toolButton_A = QtWidgets.QToolButton(parent=self.groupBox_2)
         icon3 = QtGui.QIcon()
-        icon3.addPixmap(QtGui.QPixmap(os.path.join(gifs_dir, "A_des.gif")), QtGui.QIcon.Mode.Active, QtGui.QIcon.State.Off)
-        icon3.addPixmap(QtGui.QPixmap(os.path.join(gifs_dir, "A_sel.gif")), QtGui.QIcon.Mode.Active, QtGui.QIcon.State.On)
+        icon3.addPixmap(QtGui.QPixmap(os.path.join(gifs_dir, "A_des.gif")), QtGui.QIcon.Mode.Active,
+                        QtGui.QIcon.State.Off)
+        icon3.addPixmap(QtGui.QPixmap(os.path.join(gifs_dir, "A_sel.gif")), QtGui.QIcon.Mode.Active,
+                        QtGui.QIcon.State.On)
         self.toolButton_A.setIcon(icon3)
         self.toolButton_A.setIconSize(QtCore.QSize(48, 48))
         self.toolButton_A.setCheckable(True)
@@ -108,8 +118,10 @@ class Ui_Dialog(object):
         self.horizontalLayout.addWidget(self.toolButton_A)
         self.toolButton_W = QtWidgets.QToolButton(parent=self.groupBox_2)
         icon4 = QtGui.QIcon()
-        icon4.addPixmap(QtGui.QPixmap(os.path.join(gifs_dir, "W_des.gif")), QtGui.QIcon.Mode.Active, QtGui.QIcon.State.Off)
-        icon4.addPixmap(QtGui.QPixmap(os.path.join(gifs_dir, "W_sel.gif")), QtGui.QIcon.Mode.Active, QtGui.QIcon.State.On)
+        icon4.addPixmap(QtGui.QPixmap(os.path.join(gifs_dir, "W_des.gif")), QtGui.QIcon.Mode.Active,
+                        QtGui.QIcon.State.Off)
+        icon4.addPixmap(QtGui.QPixmap(os.path.join(gifs_dir, "W_sel.gif")), QtGui.QIcon.Mode.Active,
+                        QtGui.QIcon.State.On)
         self.toolButton_W.setIcon(icon4)
         self.toolButton_W.setIconSize(QtCore.QSize(48, 48))
         self.toolButton_W.setCheckable(True)
@@ -152,6 +164,7 @@ class Ui_Dialog(object):
         # self.lineEdit_l.textChanged.connect(self.live_clamp_length)
         self.lineEdit_w.editingFinished.connect(self.fix_width)
         self.lineEdit_l.editingFinished.connect(self.fix_length)
+        self.lineEdit_t.editingFinished.connect(self.set_tool_buttons_from_text)
 
         self.buttonBox.accepted.connect(Dialog.accept)
         self.buttonBox.rejected.connect(Dialog.reject)
@@ -192,6 +205,7 @@ class Ui_Dialog(object):
             self.activeRibbon = "A"
         elif button is self.toolButton_W:
             self.activeRibbon = "W"
+
         self.lineEdit_t.setText(self.activeRibbon)
 
         # For debugging:
@@ -202,6 +216,22 @@ class Ui_Dialog(object):
 
     def update_w_from_slider(self, value):
         self.lineEdit_w.setText(str(value))
+
+    def set_tool_buttons_from_text(self):
+        self.lineEdit_t.setText(self.lineEdit_t.text().upper())
+        match self.lineEdit_t.text():
+            case "L":
+                self.toolButton_L.setChecked(True)
+            case "R":
+                self.toolButton_R.setChecked(True)
+            case "M":
+                self.toolButton_M.setChecked(True)
+            case "A":
+                self.toolButton_A.setChecked(True)
+            case "W":
+                self.toolButton_W.setChecked(True)
+            case _:
+                QMessageBox.warning(None, "Warning", "No valid type !")
 
     def fix_width(self):
         v = int(self.lineEdit_w.text() or 0)
@@ -243,12 +273,16 @@ class Ui_Dialog(object):
         try:
             length = int(self.lineEdit_l.text())
         except ValueError:
+            QMessageBox.warning(None, "Warning", "Length parameter missing !")
             length = self.verticalSlider_h.value()
+            return ()
 
         try:
             width = int(self.lineEdit_w.text())
         except ValueError:
+            QMessageBox.warning(None, "Warning", "Width parameter missing !")
             width = self.horizontalSlider_w.value()
+            return ()
 
         return ribbon_type, width, length
 

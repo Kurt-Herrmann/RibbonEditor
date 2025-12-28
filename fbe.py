@@ -140,10 +140,10 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.view)
         self.setWindowTitle("Ribbon Editor")
 
-        # only for debug *******************************************************
-        # width = 5
+        # # only for debug *******************************************************
+        # width = 8
         # length = 15
-        # type = "M"
+        # type = "W"
         # # only for debug
         # # make sure that width is un even for types M and A
         # if width % 2 == 0 and (type == "M" or type == "A"):
@@ -165,7 +165,7 @@ class MainWindow(QMainWindow):
         #
         # self.scene.setSceneRect(0, 0, self.R.cplW, self.R.cplL)
         # self.setGeometry(2400, -250, self.window_w, 800)
-        # only for debug ***********************************************************
+        # # only for debug ***********************************************************
 
     def closeEvent(self, e):
         if not self.R.changed:
@@ -207,17 +207,31 @@ class MainWindow(QMainWindow):
 
         if dialog.exec() == QDialog.DialogCode.Accepted:
             type, width, length = dialog.ui.get_values()
-            # print("TYPE:", type, "WIDTH:", width, "LENGTH:", length)
+            print("TYPE:", type, "WIDTH:", width, "LENGTH:", length)
+
+            if not (type and  width and length):
+                QMessageBox.warning(None, "Warning", "Parameters are missing !")
+                return()
 
         # make sure that width is un even for types M and A
         if width % 2 == 0 and (type == "M" or type == "A"):
             width = width - 1
-            QMessageBox.warning(None, "Warning", "For width in ribbon types \"M\" and \"A\" "
-                                                 "no even numbers are \nallowed ! "
-                                                 "The next smaller odd number has been assigned.")
+            text = (f"For width in ribbon types \"M\" and \"A\" no even numbers are \nallowed!"
+                    f" The next smaller odd number {width} has been assigned !")
+            ret = QMessageBox.question(None, "Warning", text)
+            if ret == QMessageBox.StandardButton.No:
+                return()
+
         if type == "W":
-            QMessageBox.warning(None, "Warning", "Type W not yet implemented !")
-            return()
+            if width % 4 != 1:
+                width = (width // 4) * 4  + 1
+                text=(f"The width in ribbon type \"W\" must be of the form 4 * d + 1 ! \n "
+                      f"{width} has been assigned as the nearest suitable number.")
+                ret = QMessageBox.question(None, "Warning", text)
+                if ret == QMessageBox.StandardButton.No:
+                    return()
+            # QMessageBox.warning(None, "Warning", "Type W not yet implemented !")
+            # return ()
 
         self.R = Ribbon(self.scene, width, length, type)
 
@@ -394,10 +408,10 @@ class MainWindow(QMainWindow):
 
             # Create custom page size
             page_size = QPageSize(QSizeF(page_width_points, page_height_points),
-                                 QPageSize.Unit.Point)
+                                  QPageSize.Unit.Point)
             writer.setPageSize(page_size)
             writer.setPageMargins(QMarginsF(margin_mm, margin_mm, margin_mm, margin_mm),
-                                 QPageLayout.Unit.Millimeter)
+                                  QPageLayout.Unit.Millimeter)
 
             # Create painter
             painter = QPainter(writer)
@@ -424,7 +438,7 @@ class MainWindow(QMainWindow):
                     header_text_lines[0]
                 )
                 painter.drawText(text_rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop,
-                               header_text_lines[0])
+                                 header_text_lines[0])
                 current_y += text_rect.height() + 5
 
                 # Draw date and time
@@ -437,7 +451,7 @@ class MainWindow(QMainWindow):
                     header_text_lines[1]
                 )
                 painter.drawText(text_rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop,
-                               header_text_lines[1])
+                                 header_text_lines[1])
                 current_y += text_rect.height() + 30  # Add margin below header
 
             # Calculate target rectangle for scene rendering
@@ -476,7 +490,7 @@ class MainWindow(QMainWindow):
                "<br/>" \
                "Copyright &copy; kurt.herrmann@gmx.at</h4>" \
                "</center>" \
-        # About=QMessageBox.about.setBaseSize(400,300)
+            # About=QMessageBox.about.setBaseSize(400,300)
         # About.setText(text)
         QMessageBox.about(self, "About Ribbon Editor", text)
 
