@@ -3,7 +3,7 @@ import os
 import sys
 from datetime import datetime
 
-from PyQt6.QtCore import QUrl, Qt, QPoint, QMarginsF, QSizeF
+from PyQt6.QtCore import QUrl, QPoint, QMarginsF, QSizeF
 from PyQt6.QtGui import QPainter, QKeySequence, QAction, QTransform, QPdfWriter, QPageSize, QPageLayout, QFont
 from PyQt6.QtWidgets import (QApplication, QGraphicsScene, QMainWindow, QGraphicsView,
                              QDialog, QMessageBox, QSizePolicy, QFileDialog, QVBoxLayout)
@@ -18,7 +18,7 @@ except ImportError:
     WEBENGINE_AVAILABLE = False
 
 from ribbon import *
-from ribbon_dialog import Ui_Dialog
+from ribbon_dialog import RibbonDialog
 
 
 class ZoomableGraphicsView(QGraphicsView):
@@ -203,12 +203,10 @@ class MainWindow(QMainWindow):
                     self.R.changed = False
             self.scene.clear()
 
-        dialog = QDialog()
-        ui = Ui_Dialog()
-        ui.setupUi(dialog)
+        dialog = RibbonDialog(self)
 
         if dialog.exec() == QDialog.DialogCode.Accepted:
-            type, width, length = ui.get_values()
+            type, width, length = dialog.ui.get_values()
             # print("TYPE:", type, "WIDTH:", width, "LENGTH:", length)
 
         # make sure that width is un even for types M and A
@@ -217,6 +215,10 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(None, "Warning", "For width in ribbon types \"M\" and \"A\" "
                                                  "no even numbers are \nallowed ! "
                                                  "The next smaller odd number has been assigned.")
+        if type == "W":
+            QMessageBox.warning(None, "Warning", "Type W not yet implemented !")
+            return()
+
         self.R = Ribbon(self.scene, width, length, type)
 
         All_Knot_Paramters = self.R.extract_KnPar()
