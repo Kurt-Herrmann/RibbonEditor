@@ -246,7 +246,7 @@ class MainWindow(QMainWindow):
         self.window_h = int(self.R.cplL + 2 * self.window_edge)
 
         self.scene.setSceneRect(0, 0, self.R.cplW, self.R.cplL)
-        self.setGeometry(2400, -250, self.window_w, 800)
+        self.setGeometry(300, 20, self.window_w, 800)
 
     def open_file(self):
         """Open a ribbon pattern file"""
@@ -280,7 +280,7 @@ class MainWindow(QMainWindow):
             self.window_w = int(self.R.cplW + 2 * self.window_edge)
             self.window_h = int(self.R.cplL + 2 * self.window_edge)
             self.scene.setSceneRect(0, 0, self.R.cplW, self.R.cplL)
-            self.setGeometry(2400, -250, self.window_w, 800)
+            self.setGeometry(300, 20, self.window_w, 800)
 
             # Update file path and window title
             self.file_path = path

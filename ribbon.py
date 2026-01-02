@@ -207,7 +207,7 @@ class Ribbon():
         # set end knot types and next knot in one direction
         self.set_end_knots(False, 1, mid + 1)
         self.set_end_knots(True, mid, self.w - 1)
-        self.K[mid][self.l - 1].endKtype = Const.EndKBoth
+        self.K[mid][self.l - 1].endKtype = Const.EndKnBoth
 
         # normal direction
         for y in range(self.l):
@@ -241,7 +241,8 @@ class Ribbon():
         # w = 4 * d + 1 : 5, 9, 13, 17, 21, 25, 29, ...
 
         # calculate x values  example w = 13 d = 3
-        d = int((self.w - 1) / 4 )
+        d = 2
+        w = 4*d+1
         # d = 3
         x0 = 0  # x0 = 0
         x1 = d  # x1 = 3
@@ -249,68 +250,75 @@ class Ribbon():
         x3 = x2 + d  # x3 = 9
         x4 = x3 + d  # x4 = 12
 
-        self.make_knot_links(True, x0, x1)  # 0 - 3
-        self.make_knot_links(False, x1 + 1, x2)  # 4 - 6
-        self.make_knot_links(True, x2 + 1, x3)  # 7 - 9
-        self.make_knot_links(False, x3 + 1, x4)  # 10 - 12
+        self.make_knot_links(True, x0, x1 + 1)  # 0 - 3
+        self.make_knot_links(False, x1, x2 + 1)  # 4 - 6
+        self.make_knot_links(True, x2, x3 + 1)  # 7 - 9
+        self.make_knot_links(False, x3, x4 + 1)  # 10 - 12
         self.set_type(x1, Const.Rk)  # 3
         self.set_type(x2, Const.Rk)  # 6
         self.set_type(x3, Const.Rk)  # 9
-        self.set_visible(x0, x1, Const.LeftThrdVis)  # 0 - 3
-        self.set_visible(x1 + 1, x2, Const.RightThrdVis)  # 4 - 6
-        self.set_visible(x2 + 1, x3, Const.LeftThrdVis)  # 7 - 9
-        self.set_visible(x3 + 1, x4, Const.RightThrdVis)  # 10 - 12
+        self.set_visible(x0, x1 + 1, Const.LeftThrdVis)  # 0 - 3
+        self.set_visible(x1, x2 + 1, Const.RightThrdVis)  # 4 - 6
+        self.set_visible(x2, x3 + 1, Const.LeftThrdVis)  # 7 - 9
+        self.set_visible(x3, x4 + 1, Const.RightThrdVis)  # 10 - 12
         self.fix_middle_knot_links("M", x1)  # 3 behaves like type M
         self.fix_middle_knot_links("A", x2)  # 6 behaves like type A
         self.fix_middle_knot_links("M", x3)  # 9 behaves like type M
 
-        # set end knot types and next knot in one direction
-        self.set_end_knots(True, x0, x1)  # 0 - 3
-        self.set_end_knots(False, x1 + 1, x2)  # 4 - 6
-        self.set_end_knots(True, x2 + 1, x3)  # 7 - 9
-        self.set_end_knots(False, x3 + 1, x4)  # 10 - 12
+        # set endKtype and next knot in one direction
+        self.K[x1][self.l - 1].endKtype = Const.EndKnNone
+        self.set_end_knots_W(True, x0, x1 + 1)  # 0 - 3
+        self.K[x2][self.l - 1].endKtype = Const.EndKnBoth
+        self.set_end_knots_W(False, x1 + 1, x2 + 1)  # 4 - 6
+        self.K[x3][self.l - 1].endKtype = Const.EndKnNone
+        self.set_end_knots_W(True, x2 + 1, x3 + 1)  # 7 - 9
+        self.set_end_knots_W(False, x3 + 1, x4 + 1)  # 10 - 12
 
         # normal direction
         for y in range(self.l):
-            for x in range(x0, x1):
+            for x in range(x0, x1 + 1):
                 self.K[x][y].gco.x = self.cBx + self.Ec + self.Vd * x
-                self.K[x][y].gco.y = self.cBy + self.Ec + self.Vd * (x + 2 * y)
+                self.K[x][y].gco.y = self.cBy + self.Ec + self.Vd * (2 * y - x0 + x)
+                print(f"'{x}/{y}';{self.K[x][y].gco.x:.0f};{self.K[x][y].gco.y:.0f}")
                 print(f"normal, x {x} y {y}  strtK {self.K[x][y].strtK} endK {self.K[x][y].endK}, "
                       f"type {self.K[x][y].type} eKL {self.K[x][y].edgeKL} eKR {self.K[x][y].edgeKR} "
-                      f"gco.x {self.K[x][y].gco.x:.0f} gco.y {self.K[x][y].gco.y:.0f}")
+                      f"endKtype {self.K[x][y].endKtype} gco.x {self.K[x][y].gco.x:.0f} gco.y {self.K[x][y].gco.y:.0f}")
                 color = QColor("black")
                 self.K[x][y].draw_graphic_items(color, self.thW, self.Kd, self.scene)
 
         # reverse direction
         for y in range(self.l):
-            for x in range(x1 + 1, x2):
+            for x in range(x1 + 1, x2 + 1):
                 self.K[x][y].gco.x = self.cBx + self.Ec + self.Vd * x
-                self.K[x][y].gco.y = self.cBy + self.Ec + self.Vd * (self.w - 1 - x + 2 * y)
+                self.K[x][y].gco.y = self.cBy + self.Ec + self.Vd * (2 * y + x2 - x)
+                print(f"'{x}/{y}';{self.K[x][y].gco.x:.0f};{self.K[x][y].gco.y:.0f}")
                 print(f"normal, x {x} y {y}  strtK {self.K[x][y].strtK} endK {self.K[x][y].endK}, "
                       f"type {self.K[x][y].type} eKL {self.K[x][y].edgeKL} eKR {self.K[x][y].edgeKR} "
-                      f"gco.x {self.K[x][y].gco.x:.0f} gco.y {self.K[x][y].gco.y:.0f}")
+                      f"endKtype {self.K[x][y].endKtype} gco.x {self.K[x][y].gco.x:.0f} gco.y {self.K[x][y].gco.y:.0f}")
                 color = QColor("black")
                 self.K[x][y].draw_graphic_items(color, self.thW, self.Kd, self.scene)
 
         # normal direction
         for y in range(self.l):
-            for x in range(x2 + 1, x3):
+            for x in range(x2 + 1, x3 + 1):
                 self.K[x][y].gco.x = self.cBx + self.Ec + self.Vd * x
-                self.K[x][y].gco.y = self.cBy + self.Ec + self.Vd * (x + 2 * y)
+                self.K[x][y].gco.y = self.cBy + self.Ec + self.Vd * (2 * y - x2 + x)
+                print(f"'{x}/{y}';{self.K[x][y].gco.x:.0f};{self.K[x][y].gco.y:.0f}")
                 print(f"normal, x {x} y {y}  strtK {self.K[x][y].strtK} endK {self.K[x][y].endK}, "
                       f"type {self.K[x][y].type} eKL {self.K[x][y].edgeKL} eKR {self.K[x][y].edgeKR} "
-                      f"gco.x {self.K[x][y].gco.x:.0f} gco.y {self.K[x][y].gco.y:.0f}")
+                      f"endKtype {self.K[x][y].endKtype} gco.x {self.K[x][y].gco.x:.0f} gco.y {self.K[x][y].gco.y:.0f}")
                 color = QColor("black")
                 self.K[x][y].draw_graphic_items(color, self.thW, self.Kd, self.scene)
 
-                # reverse direction
-        for y in range(x3 + 1, x4):
-            for x in range(self.w // 2 + 1, self.w):
+        # reverse direction
+        for y in range(self.l):
+            for x in range(x3 + 1, x4 + 1):
                 self.K[x][y].gco.x = self.cBx + self.Ec + self.Vd * x
-                self.K[x][y].gco.y = self.cBy + self.Ec + self.Vd * (self.w - 1 - x + 2 * y)
+                self.K[x][y].gco.y = self.cBy + self.Ec + self.Vd * (2 * y + x4 - x)
+                print(f"'{x}/{y}';{self.K[x][y].gco.x:.0f};{self.K[x][y].gco.y:.0f}")
                 print(f"normal, x {x} y {y}  strtK {self.K[x][y].strtK} endK {self.K[x][y].endK}, "
                       f"type {self.K[x][y].type} eKL {self.K[x][y].edgeKL} eKR {self.K[x][y].edgeKR} "
-                      f"gco.x {self.K[x][y].gco.x:.0f} gco.y {self.K[x][y].gco.y:.0f}")
+                      f"endKtype {self.K[x][y].endKtype} gco.x {self.K[x][y].gco.x:.0f} gco.y {self.K[x][y].gco.y:.0f}")
                 color = QColor("black")
                 self.K[x][y].draw_graphic_items(color, self.thW, self.Kd, self.scene)
 
@@ -388,14 +396,14 @@ class Ribbon():
 
                     self.K[x][y].nKtoR = nKtoR
                     self.K[x][y].nKtoL = nKtoL
-                    # print(f"Knot cox {self.K[x][y].co[0]} coy {self.K[x][y].co[1]} ; "
-                    #       f"nKtoR: cox {self.K[x][y].nKtoR.co[0]} coy {self.K[x][y].nKtoR.co[1]} ; "
-                    #       f"nKtoL: cox {self.K[x][y].nKtoL.co[0]} coy {self.K[x][y].nKtoL.co[1]}")
+                    print(f"Knot cox {self.K[x][y].co[0]} coy {self.K[x][y].co[1]} ; "
+                          f"nKtoR: cox {self.K[x][y].nKtoR.co[0]} coy {self.K[x][y].nKtoR.co[1]} ; "
+                          f"nKtoL: cox {self.K[x][y].nKtoL.co[0]} coy {self.K[x][y].nKtoL.co[1]}")
 
     def fix_middle_knot_links(self, type, column):
         x = column
         for y in range(self.l):
-            # print(f" Knot x ; {self.K[x][y].co[0]} ; {self.K[x][y].co[1]}")
+            print(f" Knot x ; {self.K[x][y].co[0]} ; {self.K[x][y].co[1]}")
             if not self.K[x][y].endK:
                 nKtoR = Knot(self.scene, self.KnPnts)
                 nKtoL = Knot(self.scene, self.KnPnts)
@@ -410,24 +418,45 @@ class Ribbon():
 
                 self.K[x][y].nKtoR = nKtoR
                 self.K[x][y].nKtoL = nKtoL
-                # print(f" nKtoR  { self.K[x][y].nKtoR.co[0]} ; {self.K[x][y].nKtoR.co[1]} ; "
-                #   f"nKtoL {self.K[x][y].nKtoL.co[0]} ;  {self.K[x][y].nKtoL.co[1]}")
+                print(f" nKtoR  {self.K[x][y].nKtoR.co[0]} ; {self.K[x][y].nKtoR.co[1]} ; "
+                      f"nKtoL {self.K[x][y].nKtoL.co[0]} ;  {self.K[x][y].nKtoL.co[1]}")
 
     def set_end_knots(self, normal, start, stop):
         y = self.l - 1
         for x in range(start, stop):
             if normal and not self.K[x][y].edgeKR:
                 # print(f" Knot x ; {self.K[x][y].co[0]} ; {self.K[x][y].co[1]}")
-                self.K[x][y].endKtype = Const.EndKRuLd
+                self.K[x][y].endKtype = Const.EndKnRuLd
                 nKtoR = Knot(self.scene, self.KnPnts)
                 nKtoR = self.K[x + 1][y]
                 self.K[x][y].nKtoR = nKtoR
             else:
                 # print(f" Knot x ; {self.K[x][y].co[0]} ; {self.K[x][y].co[1]}")
-                self.K[x][y].endKtype = Const.EndKLuRd
+                self.K[x][y].endKtype = Const.EndKnLuRd
                 nKtoL = Knot(self.scene, self.KnPnts)
                 nKtoL = self.K[x - 1][y]
                 self.K[x][y].nKtoL = nKtoL
+
+    def set_end_knots_W(self, normal, start, stop):
+        y = self.l - 1
+        for x in range(start, stop):
+            if normal:
+                if self.K[x][y].endKtype != Const.EndKnNone:
+                    self.K[x][y].endKtype = Const.EndKnRuLd
+                    nKtoR = Knot(self.scene, self.KnPnts)
+                    nKtoR = self.K[x + 1][y]
+                    self.K[x][y].nKtoR = nKtoR
+            elif not normal:  # reverse
+                if self.K[x][y].endKtype != Const.EndKnBoth:
+                    self.K[x][y].endKtype = Const.EndKnLuRd
+                    nKtoL = Knot(self.scene, self.KnPnts)
+                    nKtoL = self.K[x - 1][y]
+                    self.K[x][y].nKtoL = nKtoL
+                # elif self.K[x][y].endKtype == Const.EndKnBoth:
+                #     nKtoL = Knot(self.scene, self.KnPnts)
+                #     nKtoL = self.K[x + 1][y]
+                #     self.K[x][y].nKtoL = nKtoL
+            # print(f" Knot x ; {self.K[x][y].co[0]} ; {self.K[x][y].co[1]}")
 
     def toggle_type(self, column):
         # toggle between NK and Rk
@@ -480,7 +509,7 @@ class Ribbon():
                 # print(f"i {i} j {j} color {color_name}")
                 colors.append(f[j % 8])
                 j += 1
-        else:  # type M or A
+        elif type == "M" or type == "A":  # type M or A
             mid = self.w // 2
             j = 0
             for i in range(0, mid + 1):
@@ -492,6 +521,56 @@ class Ribbon():
             for i in range(self.w + 1, mid + 1, -1):
                 color_name = self.color.print_color_key(f[j % 8])
                 # print(f"i {i} j {j} color {color_name}")
+                colors.append(f[j % 8])
+                j -= 1
+        elif type == "W":
+            # calculate x values  example w = 13 d = 3
+            d = int((self.w - 1) / 4)  # d = 3
+            x0 = 0  # x0 = 0 2 Fäden
+            # x0 < x > x1 je 1 Faden
+            x1 = d  # x1 = 3  kein Faden
+            # x1 < x > x2 je 1 Faden
+            x2 = x1 + d  # x2 = 6 2 Fäden
+            # x2 < x > x3 je 1 Faden
+            x3 = x2 + d  # x3 = 9  Kein Faden
+            # x3 < x > x4 je 1 Faden
+            x4 = x3 + d  # x4 = 12 2 Fäden
+
+            # Start
+            j = 0
+            for i in range(x0,d):
+                color_name = self.color.print_color_key(f[j % 8])
+                print(f"i {i} j {j} color {color_name} x0 - x1 +j")
+                if i == x0:
+                    colors.append(f[j % 8])
+                    j += 1
+                    colors.append(f[j % 8])
+                    j += 1
+                    i+=1
+                else:
+                    colors.append(f[j % 8])
+                    j += 1
+            # Middle
+            j = 2 * x1 -1
+
+
+
+            j = d
+            for i in range(0, d):
+                color_name = self.color.print_color_key(f[j % 8])
+                print(f"i {i} j {j} color {color_name} x1 - x2 -j")
+                colors.append(f[j % 8])
+                j -= 1
+            j = d +1
+            for i in range(0, d +2):
+                color_name = self.color.print_color_key(f[j % 8])
+                print(f"i {i} j {j} color {color_name} x2 x3 +j")
+                colors.append(f[j % 8])
+                j += 1
+            j = x4
+            for i in range(x4 + 1, x3, -1):
+                color_name = self.color.print_color_key(f[j % 8])
+                print(f"i {i} j {j} color {color_name} x3 - x4 -j")
                 colors.append(f[j % 8])
                 j -= 1
 
@@ -980,9 +1059,12 @@ class Const(Enum):
     Nk = auto()  # Normal not, 0 start threads
     Rk = auto()  # Reverse not, 0 start threads
     # end knots
-    EndKLuRd = auto()  # End knot left up to right down
-    EndKRuLd = auto()  # End knot right up to left down
-    EndKBoth = auto()  # End knot right up to left down and left up to right dow, for type A only
+    EndKnLuRd = auto()  # End knot left up to right down
+    EndKnRuLd = auto()  # End knot right up to left down
+    EndKnBoth = auto()  # End knot right up to left down and left up to right dow, for type A only
+    # EndKnNoLeft =auto()
+    # EndKnNoRight =auto()
+    EndKnNone = auto()
     LeftThrdVis = auto()
     RightThrdVis = auto()
     undefined = auto()
@@ -1166,7 +1248,6 @@ class Knot():
         if not self.endK and self.edgeKL:
             self.line_out_right = self.draw_line(self.gco, self.kp.RgtThrTopPt, self.kp.RgtThrBotPt, pen2,
                                                  Const.RightOut, scene)
-            # self.arc_out_left = self.set_arc(self.gco, RefPtArcLft, ArcQuadSide, SrtAngArcLft, SpanAngArc, pen1)
             self.draw_arc(self.gco, self.kp.LftThrTopPt, self.kp.RefPtArcLft, self.kp.ArcQuadSide, self.kp.StartAngLft,
                           self.kp.SpanAng, pen2, Const.LeftOut, scene)
 
@@ -1174,19 +1255,18 @@ class Knot():
         if not self.endK and self.edgeKR:
             self.line_out_right = self.draw_line(self.gco, self.kp.LftThrTopPt, self.kp.LftThrBotPt, pen2,
                                                  Const.LeftOut, scene)
-            # self.arc_out_right = self.set_arc(self.gco, RefPtArcRgt, self.gc.ArcQuadSide, SrtAngArcRgt, SpanAngArc, pen1)
             self.draw_arc(self.gco, self.kp.RgtThrTopPt, self.kp.RefPtArcRgt, self.kp.ArcQuadSide, self.kp.StartAngRgt,
                           -self.kp.SpanAng, pen2, Const.RightOut, scene)
 
         # end knots
         if self.endK:
-            if self.endKtype == Const.EndKRuLd:  # End knot with right exit thread
+            if self.endKtype == Const.EndKnRuLd:  # End knot with right exit thread
                 self.line_out_right = self.draw_line(self.gco, self.kp.RgtThrTopPt, self.kp.RgtThrBotPt, pen2,
                                                      Const.RightOut, scene)
-            if self.endKtype == Const.EndKLuRd:  # End knot with left exit thread
+            if self.endKtype == Const.EndKnLuRd:  # End knot with left exit thread
                 self.line_out_left = self.draw_line(self.gco, self.kp.LftThrTopPt, self.kp.LftThrBotPt, pen2,
                                                     Const.LeftOut, scene)
-            if self.endKtype == Const.EndKBoth:  # End knot with both exit threads
+            if self.endKtype == Const.EndKnBoth:  # End knot with both exit threads
                 self.line_out_right = self.draw_line(self.gco, self.kp.RgtThrTopPt, self.kp.RgtThrBotPt, pen2,
                                                      Const.RightOut, scene)
                 self.line_out_left = self.draw_line(self.gco, self.kp.LftThrTopPt, self.kp.LftThrBotPt, pen2,
@@ -1357,7 +1437,7 @@ class Knot():
                     rDat = {"Stop": False, "nxtKnot": nKnot, "nxtDir": inDir_nKnot}
                     return (rDat)
         else:
-            if self.endKtype == Const.EndKLuRd:
+            if self.endKtype == Const.EndKnLuRd:
                 if outDir_actualKnot == Const.LeftOut:
                     nKnot = self.nKtoL
                     self.line_out_left.setPen(pen)
@@ -1366,7 +1446,7 @@ class Knot():
                     return (rDat)
                 elif outDir_actualKnot == Const.RightOut:
                     rDat = {"Stop": True}
-            elif self.endKtype == Const.EndKRuLd:
+            elif self.endKtype == Const.EndKnRuLd:
                 if outDir_actualKnot == Const.RightOut:
                     nKnot = self.nKtoR
                     self.line_out_right.setPen(pen)
@@ -1375,7 +1455,7 @@ class Knot():
                     return (rDat)
                 elif outDir_actualKnot == Const.LeftOut:
                     rDat = {"Stop": True}
-            elif self.endKtype == Const.EndKBoth:
+            elif self.endKtype == Const.EndKnBoth:
                 if outDir_actualKnot == Const.RightOut:
                     nKnot = self.nKtoR
                     self.line_out_right.setPen(pen)
