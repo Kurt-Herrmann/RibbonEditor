@@ -4,7 +4,7 @@ import sys
 from datetime import datetime
 
 from PyQt6.QtCore import QUrl, QPoint, QMarginsF, QSizeF
-from PyQt6.QtGui import QPainter, QKeySequence, QAction, QTransform, QPdfWriter, QPageSize, QPageLayout, QFont
+from PyQt6.QtGui import QPainter, QKeySequence, QAction, QTransform, QPdfWriter, QPageSize, QPageLayout, QFont, QUndoStack
 from PyQt6.QtWidgets import (QApplication, QGraphicsScene, QMainWindow, QGraphicsView,
                              QDialog, QMessageBox, QSizePolicy, QFileDialog, QVBoxLayout)
 
@@ -133,6 +133,15 @@ class MainWindow(QMainWindow):
                                 QSizePolicy.Policy.Expanding)
         self.R = None
         self.file_path = None
+
+        # Create undo stack for undo/redo functionality
+        self.undo_stack = QUndoStack(self)
+        self.undo_stack.setUndoLimit(50)  # Limit to 50 undo operations
+
+        # Connect signals to update menu states
+        self.undo_stack.canUndoChanged.connect(self._update_undo_actions)
+        self.undo_stack.canRedoChanged.connect(self._update_undo_actions)
+
         # self.window_w = 300
         # self.window_h = 800
         self.window_edge = 25
@@ -188,6 +197,45 @@ class MainWindow(QMainWindow):
             e.ignore()
         return
 
+    def _update_undo_actions(self):
+        """Update undo/redo action enabled state and text"""
+        has_ribbon = self.R is not None
+
+        can_undo = has_ribbon and self.undo_stack.canUndo()
+        can_redo = has_ribbon and self.undo_stack.canRedo()
+
+        if hasattr(self, 'undo_action'):
+            self.undo_action.setEnabled(can_undo)
+            if can_undo:
+                self.undo_action.setText(f"Undo {self.undo_stack.undoText()}")
+            else:
+                self.undo_action.setText("Undo")
+
+        if hasattr(self, 'redo_action'):
+            self.redo_action.setEnabled(can_redo)
+            if can_redo:
+                self.redo_action.setText(f"Redo {self.undo_stack.redoText()}")
+            else:
+                self.redo_action.setText("Redo")
+
+    def _create_edit_menu(self):
+        """Create Edit menu with undo/redo actions"""
+        edit_menu = self.menuBar().addMenu("&Edit")
+
+        # Undo action
+        self.undo_action = QAction("Undo", self)
+        self.undo_action.setShortcut(QKeySequence.StandardKey.Undo)
+        self.undo_action.triggered.connect(self.undo_stack.undo)
+        self.undo_action.setEnabled(False)
+        edit_menu.addAction(self.undo_action)
+
+        # Redo action
+        self.redo_action = QAction("Redo", self)
+        self.redo_action.setShortcut(QKeySequence.StandardKey.Redo)
+        self.redo_action.triggered.connect(self.undo_stack.redo)
+        self.redo_action.setEnabled(False)
+        edit_menu.addAction(self.redo_action)
+
     def new_file(self):
         # def new_file(self, checked=False):
         if self.R:  # is there already an active ribbon ?
@@ -201,6 +249,8 @@ class MainWindow(QMainWindow):
                 if answer == QMessageBox.StandardButton.Save:
                     self.save_as()
                     self.R.changed = False
+            # Clear undo stack before clearing scene to avoid stale references
+            self.undo_stack.clear()
             self.scene.clear()
 
         dialog = RibbonDialog(self)
@@ -235,6 +285,12 @@ class MainWindow(QMainWindow):
 
         self.R = Ribbon(self.scene, width, length, type)
 
+        # Attach undo stack to ribbon for easy access from graphics items
+        self.R.undo_stack = self.undo_stack
+
+        # Clear undo stack for new ribbon (fresh start)
+        self.undo_stack.clear()
+
         All_Knot_Paramters = self.R.extract_KnPar()
         All_Ribbon_Parameters = {
             "width": width,
@@ -247,6 +303,9 @@ class MainWindow(QMainWindow):
 
         self.scene.setSceneRect(0, 0, self.R.cplW, self.R.cplL)
         self.setGeometry(300, 20, self.window_w, 800)
+
+        # Update undo/redo action states
+        self._update_undo_actions()
 
     def open_file(self):
         """Open a ribbon pattern file"""
@@ -273,8 +332,14 @@ class MainWindow(QMainWindow):
             # Create new ribbon with the saved dimensions
             self.R = Ribbon(self.scene, width, length, ribbon_type)
 
+            # Attach undo stack to ribbon
+            self.R.undo_stack = self.undo_stack
+
             # Restore saved state
             self.R.restore_from_dict(data)
+
+            # Clear undo stack for loaded ribbon (fresh start)
+            self.undo_stack.clear()
 
             # Update window
             self.window_w = int(self.R.cplW + 2 * self.window_edge)
@@ -285,6 +350,9 @@ class MainWindow(QMainWindow):
             # Update file path and window title
             self.file_path = path
             self.setWindowTitle(f"Ribbon Editor - {saved_filename}")
+
+            # Update undo/redo action states
+            self._update_undo_actions()
 
         except Exception as e:
             QMessageBox.critical(
@@ -578,6 +646,10 @@ def main():
     close = QAction("&Close")
     menu.addAction(close)
     close.triggered.connect(window.close)
+
+    # Edit menu
+    window._create_edit_menu()
+    window._update_undo_actions()  # Initialize action states
 
     # View menu
     view_menu = window.menuBar().addMenu("&View")

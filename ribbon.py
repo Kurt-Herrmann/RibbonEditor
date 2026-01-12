@@ -31,6 +31,7 @@ class Ribbon():
         self.f_x = 1.6  # horizontal offset of color bar rectangles for 2 thread knots and type A
         self.sqrt_2 = math.sqrt(2)
         self.changed = False
+        self.undo_stack = None  # Will be set by MainWindow
 
         # needed y-distance for color bar
         if self.type == "A":
@@ -1635,27 +1636,39 @@ class KnotCircle(QGraphicsEllipseItem, SceneObjectBase):
 
     def toggle_knot_color(self):
         R = self.get_ribbon()
-        R.changed = True
-        self.knot.left_thread_vis = not self.knot.left_thread_vis
-        self.knot.set_knot_color()
+
+        # Use undo command if undo system is initialized
+        if hasattr(R, 'undo_stack') and R.undo_stack is not None:
+            from undo_commands import ToggleKnotColorCommand
+            cmd = ToggleKnotColorCommand(R, self.knot.co, self.knot.left_thread_vis)
+            R.undo_stack.push(cmd)
+            R.changed = True
+        else:
+            # Fallback if undo system not initialized
+            R.changed = True
+            self.knot.left_thread_vis = not self.knot.left_thread_vis
+            self.knot.set_knot_color()
 
     def change_thread_direction(self):
         R = self.get_ribbon()
-        R.changed = True
-        # toggle knot type
-        if self.knot.type == Const.Nk:
-            self.knot.type = Const.Rk
-        else:
-            self.knot.type = Const.Nk
 
-        # p_color_in_right = self.knot.colors.print_color_key(self.knot.color_in_right)
-        # print(f"change_thread_direction, thread from the right, type {self.knot.type} , "
-        #       f"color {p_color_in_right} direction {Const.RightIn}")
-        self.knot.set_thread(self.knot.color_in_right, Const.RightIn, R.thW)
-        # p_color_in_left = self.knot.colors.print_color_key(self.knot.color_in_left)
-        # print(f"change_thread_direction, thread from the left, type {self.knot.type} , "
-        #       f"color {p_color_in_left} direction {Const.LeftIn}")
-        self.knot.set_thread(self.knot.color_in_left, Const.LeftIn, R.thW)
+        # Use undo command if undo system is initialized
+        if hasattr(R, 'undo_stack') and R.undo_stack is not None:
+            from undo_commands import ChangeKnotTypeCommand
+            cmd = ChangeKnotTypeCommand(R, self.knot.co)
+            R.undo_stack.push(cmd)
+            R.changed = True
+        else:
+            # Fallback if undo system not initialized
+            R.changed = True
+            # toggle knot type
+            if self.knot.type == Const.Nk:
+                self.knot.type = Const.Rk
+            else:
+                self.knot.type = Const.Nk
+
+            self.knot.set_thread(self.knot.color_in_right, Const.RightIn, R.thW)
+            self.knot.set_thread(self.knot.color_in_left, Const.LeftIn, R.thW)
 
 
 class ColorRect(QGraphicsRectItem, SceneObjectBase):
@@ -1705,28 +1718,36 @@ class ColorRect(QGraphicsRectItem, SceneObjectBase):
 
     def select_new_color(self):
         brush = self.brush()
-        color = brush.color()
-        name = color.name(format=QColor.NameFormat.HexRgb)
+        old_color = brush.color()
+        # name = old_color.name(format=QColor.NameFormat.HexRgb)
         # print(f"Color Rect Single-clicked on index: {self.index} color: {name}")
         # ✅ Get the parent window (so the color dialog stays modal)
         parent_widget = None
         if self.scene() and self.scene().views():
             parent_widget = self.scene().views()[0].window()
-        new_color = QColorDialog.getColor(color, parent_widget, "Select Color")
+        new_color = QColorDialog.getColor(old_color, parent_widget, "Select Color")
         if not new_color.isValid():
             return  # user cancelled
-        self.setBrush(new_color)
-        # print(f"New color selected: {new_color.name()}")
-        scene = self.scene()
+
+        # Use undo command if undo system is initialized
         R = self.get_ribbon()
-        R.changed = True
-        CS = R.StartKnot_list[self.index]
-        CS.color = new_color
-        Kh = getattr(CS, "Knot", None)
-        direction = getattr(CS, "direction", None)
-        Kh.set_thread(new_color, direction, R.thW)
-        line = getattr(CS, "line", None)
-        pen = QPen()
-        pen.setColor(new_color)
-        pen.setWidth(R.thW)
-        line.setPen(pen)
+        if hasattr(R, 'undo_stack') and R.undo_stack is not None:
+            from undo_commands import ChangeThreadColorCommand
+            cmd = ChangeThreadColorCommand(R, self.index, old_color, new_color)
+            R.undo_stack.push(cmd)
+            R.changed = True
+        else:
+            # Fallback if undo system not initialized
+            self.setBrush(new_color)
+            # print(f"New color selected: {new_color.name()}")
+            R.changed = True
+            CS = R.StartKnot_list[self.index]
+            CS.color = new_color
+            Kh = getattr(CS, "Knot", None)
+            direction = getattr(CS, "direction", None)
+            Kh.set_thread(new_color, direction, R.thW)
+            line = getattr(CS, "line", None)
+            pen = QPen()
+            pen.setColor(new_color)
+            pen.setWidth(R.thW)
+            line.setPen(pen)
