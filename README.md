@@ -1,5 +1,6 @@
 To run the Ribbon Editor you need 
     fbe.py containing the main method, 
     ribbon.py the logic for the ribbons, 
-    input_dialog for the input of ribbon parameters, and the 
-    resourses with gif pictures and a helptext in German
+    ribbon_dialog.py for the input of ribbon parameters
+    undo_commands.py, for  Qt's QUndoCommand framework,
+    Resources with gif pictures and a helptext in German
