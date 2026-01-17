@@ -110,7 +110,6 @@ class Ribbon():
         self.set_visible(0, self.w, Const.LeftThrdVis)
 
         # set end knot types and next knot in one direction
-        print(f"Thread {i} color {color_name} 1st pass direction {direction}")
         self.set_end_knots(True, 0, self.w - 1)
 
         self.cBx += 0.5 * self.Vd
@@ -266,12 +265,32 @@ class Ribbon():
 
         # set endKtype and next knot in one direction
         self.K[x1][self.l - 1].endKtype = Const.EndKnNone
-        self.set_end_knots_W(True, x0, x1 + 1)  # 0 - 3
+        self.set_end_knots(True, x0, x1)  # 0 - 3
         self.K[x2][self.l - 1].endKtype = Const.EndKnBoth
-        self.set_end_knots_W(False, x1 + 1, x2 + 1)  # 4 - 6
+        self.set_end_knots(False, x1 + 1, x2 + 1)  # 4 - 6
         self.K[x3][self.l - 1].endKtype = Const.EndKnNone
-        self.set_end_knots_W(True, x2 + 1, x3 + 1)  # 7 - 9
-        self.set_end_knots_W(False, x3 + 1, x4 + 1)  # 10 - 12
+        self.set_end_knots(True, x2 + 1, x3)  # 7 - 9
+        self.set_end_knots(False, x3 + 1, x4 + 1)  # 10 - 12
+
+        # only for debugging
+        for y in range(self.l):  # y .. index to the rows
+            for x in range(self.w):  # x .. index inside each row
+
+                if self.K[x][y].nKtoL:
+                    coToL = f"nkToL:{self.K[x][y].nKtoL.co} "
+                else:
+                    coToL = "no kKtoL "
+
+                if self.K[x][y].nKtoR:
+                    coToR = f"nkToR:{self.K[x][y].nKtoR.co} "
+                else:
+                    coToR = "no nKtoR "
+
+                Str = f"Knot:{self.K[x][y].co} "
+                Str = Str + coToL + coToR
+
+                print(Str)
+        # only for debugging
 
         # normal direction
         for y in range(self.l):
@@ -425,13 +444,13 @@ class Ribbon():
         for x in range(start, stop):
             if normal and not self.K[x][y].edgeKR:
                 # print(f" Knot x ; {self.K[x][y].co[0]} ; {self.K[x][y].co[1]}")
-                self.K[x][y].endKtype = Const.EndKnRuLd
+                self.K[x][y].endKtype = Const.EndKnLikeTypeL
                 nKtoR = Knot(self.scene, self.KnPnts)
                 nKtoR = self.K[x + 1][y]
                 self.K[x][y].nKtoR = nKtoR
             else:
                 # print(f" Knot x ; {self.K[x][y].co[0]} ; {self.K[x][y].co[1]}")
-                self.K[x][y].endKtype = Const.EndKnLuRd
+                self.K[x][y].endKtype = Const.EndKnLikeTypeR
                 nKtoL = Knot(self.scene, self.KnPnts)
                 nKtoL = self.K[x - 1][y]
                 self.K[x][y].nKtoL = nKtoL
@@ -441,13 +460,13 @@ class Ribbon():
         for x in range(start, stop):
             if normal:
                 if self.K[x][y].endKtype != Const.EndKnNone:
-                    self.K[x][y].endKtype = Const.EndKnRuLd
+                    self.K[x][y].endKtype = Const.EndKnLikeTypeL
                     nKtoR = Knot(self.scene, self.KnPnts)
                     nKtoR = self.K[x + 1][y]
                     self.K[x][y].nKtoR = nKtoR
             elif not normal:  # reverse
                 if self.K[x][y].endKtype != Const.EndKnBoth:
-                    self.K[x][y].endKtype = Const.EndKnLuRd
+                    self.K[x][y].endKtype = Const.EndKnLikeTypeR
                     nKtoL = Knot(self.scene, self.KnPnts)
                     nKtoL = self.K[x - 1][y]
                     self.K[x][y].nKtoL = nKtoL
@@ -853,7 +872,8 @@ class Ribbon():
                     ref = self.K[x][0].gco + self.dis_left
                     self.K[x][0].color_in_left = fill
                     color_name = self.color.print_color_key(fill)
-                    print(f"i == 0;                 i:{i} color:{color_name} K.co:{self.K[x][0].co} Dir:{hK["Direction"]}")
+                    print(
+                        f"i == 0;                 i:{i} color:{color_name} K.co:{self.K[x][0].co} Dir:{hK["Direction"]}")
                     Rect = ColorRect.rect_45(ref.x, ref.y, self.Rd, self.Rd, i)
                     hK["Rect"] = Rect
                 elif i == 1:
@@ -862,7 +882,8 @@ class Ribbon():
                     hK["Direction"] = Const.RightIn
                     ref = self.K[x][0].gco + self.dis_none
                     color_name = self.color.print_color_key(fill)
-                    print(f"i == 1;                 i:{i} color:{color_name} K.co:{self.K[x][0].co} Dir:{hK["Direction"]}")
+                    print(
+                        f"i == 1;                 i:{i} color:{color_name} K.co:{self.K[x][0].co} Dir:{hK["Direction"]}")
                     Rect = ColorRect.rect_45(ref.x, ref.y, self.Rd, self.Rd, i)
                     hK["Rect"] = Rect
                 elif i >= 2 and i <= x1:
@@ -872,7 +893,8 @@ class Ribbon():
                     ref = self.K[x][0].gco + self.dis_none
                     self.K[x][0].color_in_right = fill
                     color_name = self.color.print_color_key(fill)
-                    print(f"i >= 2 and i <= x1;     i:{i} color:{color_name} K.co:{self.K[x][0].co} Dir:{hK["Direction"]}")
+                    print(
+                        f"i >= 2 and i <= x1;     i:{i} color:{color_name} K.co:{self.K[x][0].co} Dir:{hK["Direction"]}")
                     Rect = ColorRect.rect_45(ref.x, ref.y, self.Rd, self.Rd, i)
                     hK["Rect"] = Rect
                 if i > x1 and i < x2 + 1:
@@ -880,38 +902,42 @@ class Ribbon():
                     hK["Knot"] = self.K[x][0]
                     hK["Direction"] = Const.LeftIn
                     self.K[x][0].color_in_left = fill
-                    ref = self.K[x][0].gco + self.dis_left
+                    ref = self.K[x][0].gco + self.dis_none
                     color_name = self.color.print_color_key(fill)
-                    print(f"i > x1 and i < x2 + 1;  i:{i} color:{color_name} K.co:{self.K[x][0].co} Dir:{hK["Direction"]}")
+                    print(
+                        f"i > x1 and i < x2 + 1;  i:{i} color:{color_name} K.co:{self.K[x][0].co} Dir:{hK["Direction"]}")
                     Rect = ColorRect.rect_45(ref.x, ref.y, self.Rd, self.Rd, i)
                     hK["Rect"] = Rect
-                elif i >= x2 +1 and i < x3 +1:
-                    x = i -1
+                elif i >= x2 + 1 and i < x3 + 1:
+                    x = i - 1
                     hK["Knot"] = self.K[x][0]
                     hK["Direction"] = Const.RightIn
                     self.K[x][0].color_in_right = fill
                     ref = self.K[x][0].gco + self.dis_none
                     color_name = self.color.print_color_key(fill)
-                    print(f"i >= x2 and i < x3 + 1; i:{i} color:{color_name} K.co:{self.K[x][0].co} Dir:{hK["Direction"]}")
+                    print(
+                        f"i >= x2 and i < x3 + 1; i:{i} color:{color_name} K.co:{self.K[x][0].co} Dir:{hK["Direction"]}")
                     Rect = ColorRect.rect_45(ref.x, ref.y, self.Rd, self.Rd, i)
                     hK["Rect"] = Rect
-                elif i >= x3 and i < x4 +1:
+                elif i >= x3 and i < x4 + 1:
                     x = i
                     hK["Knot"] = self.K[x][0]
                     hK["Direction"] = Const.LeftIn
                     self.K[x][0].color_in_right = fill
                     ref = self.K[x][0].gco + self.dis_none
                     color_name = self.color.print_color_key(fill)
-                    print(f"i >= x3 and i < x4;     i:{i} color:{color_name} K.co:{self.K[x][0].co} Dir:{hK["Direction"]}")
+                    print(
+                        f"i >= x3 and i < x4;     i:{i} color:{color_name} K.co:{self.K[x][0].co} Dir:{hK["Direction"]}")
                     Rect = ColorRect.rect_45(ref.x, ref.y, self.Rd, self.Rd, i)
                     hK["Rect"] = Rect
-                elif i == x4 +1:
+                elif i == x4 + 1:
                     x = x4
                     hK["Knot"] = self.K[x][0]
                     hK["Direction"] = Const.RightIn
                     ref = self.K[x][0].gco + self.dis_right
                     color_name = self.color.print_color_key(fill)
-                    print(f"i == x4;                i:{i} color:{color_name} K.co:{self.K[x][0].co} Dir:{hK["Direction"]}")
+                    print(
+                        f"i == x4;                i:{i} color:{color_name} K.co:{self.K[x][0].co} Dir:{hK["Direction"]}")
                     self.K[x][0].color_in_left = fill
                     Rect = ColorRect.rect_45(ref.x, ref.y, self.Rd, self.Rd, i)
                     hK["Rect"] = Rect
@@ -1125,8 +1151,8 @@ class Const(Enum):
     Nk = auto()  # Normal not, 0 start threads
     Rk = auto()  # Reverse not, 0 start threads
     # end knots
-    EndKnLuRd = auto()  # End knot left up to right down
-    EndKnRuLd = auto()  # End knot right up to left down
+    EndKnLikeTypeR = auto()  # End knot left up to right down
+    EndKnLikeTypeL = auto()  # End knot right up to left down
     EndKnBoth = auto()  # End knot right up to left down and left up to right dow, for type A only
     # EndKnNoLeft =auto()
     # EndKnNoRight =auto()
@@ -1326,10 +1352,10 @@ class Knot():
 
         # end knots
         if self.endK:
-            if self.endKtype == Const.EndKnRuLd:  # End knot with right exit thread
+            if self.endKtype == Const.EndKnLikeTypeL:  # End knot with right exit thread
                 self.line_out_right = self.draw_line(self.gco, self.kp.RgtThrTopPt, self.kp.RgtThrBotPt, pen2,
                                                      Const.RightOut, scene)
-            if self.endKtype == Const.EndKnLuRd:  # End knot with left exit thread
+            if self.endKtype == Const.EndKnLikeTypeR:  # End knot with left exit thread
                 self.line_out_left = self.draw_line(self.gco, self.kp.LftThrTopPt, self.kp.LftThrBotPt, pen2,
                                                     Const.LeftOut, scene)
             if self.endKtype == Const.EndKnBoth:  # End knot with both exit threads
@@ -1369,13 +1395,13 @@ class Knot():
     def set_thread(self, color, direction, thW):
         inDir = direction
         color_name = self.colors.print_color_key(color)
-        print(f"set_thread, co: {self.co}, type {self.type}, direction: {direction} color {color_name}")
+        # print(f"set_thread, co: {self.co}, type {self.type}, direction: {direction} color {color_name}")
         h = self.next_direction(inDir, color, thW)
         if h["Stop"]:
             return ()
         nxtKnot = h["nxtKnot"]
         nxtDir = h["nxtDir"]
-        print(f"set_thread, co: {nxtKnot.co}, type {nxtKnot.type}, direction: {nxtDir} color {color_name}")
+        # print(f"set_thread, co: {nxtKnot.co}, type {nxtKnot.type}, direction: {nxtDir} color {color_name}")
         nxtKnot.set_thread(color, nxtDir, thW)
 
     def set_knot_color(self):
@@ -1395,8 +1421,8 @@ class Knot():
 
     def next_direction(self, direction, color, thW):
         p_color = self.colors.print_color_key(color)
-        # print(f"next_direction_in, co {self.co} type {self.type} , "
-        #       f"color {p_color}, direction {direction}")
+        print(f"next_direction_in, co {self.co} type {self.type} , "
+              f"color {p_color}, direction {direction}")
         inDir_actualKnot = direction
         inDir_nKnot = direction
         # nKnot = Knot(self.scene, self.kp)
@@ -1418,7 +1444,7 @@ class Knot():
             h = self.next_end_knot(inDir_actualKnot, pen)
 
         # print(f"next_direction_out, co {nKnot.co} type {nKnot.type} , "
-        #         #       f"color {p_color}, direction {inDir_nKnot}")
+        #               f"color {p_color}, direction {inDir_nKnot}")
         #         rDat = {"Stop": False, "nxtKnot": nKnot, "nxtDir": inDir_nKnot}
         #         return (rDat)
         return (h)
@@ -1503,7 +1529,7 @@ class Knot():
                     rDat = {"Stop": False, "nxtKnot": nKnot, "nxtDir": inDir_nKnot}
                     return (rDat)
         else:
-            if self.endKtype == Const.EndKnLuRd:
+            if self.endKtype == Const.EndKnLikeTypeR:
                 if outDir_actualKnot == Const.LeftOut:
                     nKnot = self.nKtoL
                     self.line_out_left.setPen(pen)
@@ -1512,7 +1538,7 @@ class Knot():
                     return (rDat)
                 elif outDir_actualKnot == Const.RightOut:
                     rDat = {"Stop": True}
-            elif self.endKtype == Const.EndKnRuLd:
+            elif self.endKtype == Const.EndKnLikeTypeL:
                 if outDir_actualKnot == Const.RightOut:
                     nKnot = self.nKtoR
                     self.line_out_right.setPen(pen)
