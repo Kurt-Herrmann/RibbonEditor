@@ -101,7 +101,6 @@ class Ribbon():
             Kh = CS.Knot
             direction = CS.direction
             color_name = self.color.print_color_key(color)
-            print(f"Thread {i} color {color_name} 1st pass direction {direction}")
             help = Kh.set_thread(color, direction, self.thW)
         print("Setup completed !")
         self.row_labels()
@@ -111,6 +110,7 @@ class Ribbon():
         self.set_visible(0, self.w, Const.LeftThrdVis)
 
         # set end knot types and next knot in one direction
+        print(f"Thread {i} color {color_name} 1st pass direction {direction}")
         self.set_end_knots(True, 0, self.w - 1)
 
         self.cBx += 0.5 * self.Vd
@@ -1369,13 +1369,13 @@ class Knot():
     def set_thread(self, color, direction, thW):
         inDir = direction
         color_name = self.colors.print_color_key(color)
-        # print(f"set_thread, co: {self.co}, type {self.type}, direction: {direction} color {color_name}")
+        print(f"set_thread, co: {self.co}, type {self.type}, direction: {direction} color {color_name}")
         h = self.next_direction(inDir, color, thW)
         if h["Stop"]:
             return ()
         nxtKnot = h["nxtKnot"]
         nxtDir = h["nxtDir"]
-        # print(f"set_thread, co: {nxtKnot.co}, type {nxtKnot.type}, direction: {nxtDir} color {color_name}")
+        print(f"set_thread, co: {nxtKnot.co}, type {nxtKnot.type}, direction: {nxtDir} color {color_name}")
         nxtKnot.set_thread(color, nxtDir, thW)
 
     def set_knot_color(self):
