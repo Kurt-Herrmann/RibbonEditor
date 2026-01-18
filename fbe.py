@@ -6,7 +6,9 @@ from datetime import datetime
 from PyQt6.QtCore import QUrl, QPoint, QMarginsF, QSizeF
 from PyQt6.QtGui import QPainter, QKeySequence, QAction, QTransform, QPdfWriter, QPageSize, QPageLayout, QFont, QUndoStack
 from PyQt6.QtWidgets import (QApplication, QGraphicsScene, QMainWindow, QGraphicsView,
-                             QDialog, QMessageBox, QSizePolicy, QFileDialog, QVBoxLayout)
+                             QDialog, QMessageBox, QSizePolicy, QFileDialog, QVBoxLayout,
+                             QLabel, QPushButton)
+from PyQt6.QtGui import QPixmap
 
 try:
     from PyQt6.QtWebEngineWidgets import QWebEngineView
@@ -548,19 +550,38 @@ class MainWindow(QMainWindow):
     def show_about_dialog(self):
         # Get absolute path to the about image
         about_gif = os.path.join(os.path.dirname(__file__), "resources", "gifs", "RBE_About_1.gif")
-        about_gif_url = QUrl.fromLocalFile(about_gif).toString()
 
-        text = "<center>" \
-               "<h2>Ribbon Editor</h2>" \
-               "<br/>" \
-               f"<img src='{about_gif_url}'>" \
-               "<h4>Date 2025.12.20&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Version 1.0<br/>" \
-               "<br/>" \
-               "Copyright &copy; kurt.herrmann@gmx.at</h4>" \
-               "</center>" \
-            # About=QMessageBox.about.setBaseSize(400,300)
-        # About.setText(text)
-        QMessageBox.about(self, "About Ribbon Editor", text)
+        dialog = QDialog(self)
+        dialog.setWindowTitle("About Ribbon Editor")
+
+        layout = QVBoxLayout()
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        # Title
+        title_label = QLabel("<h2>Ribbon Editor</h2>")
+        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(title_label)
+
+        # Image
+        image_label = QLabel()
+        pixmap = QPixmap(about_gif)
+        image_label.setPixmap(pixmap)
+        image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(image_label)
+
+        # Info text
+        info_label = QLabel("<h4>Date 2026.01.18         Version 1.01<br/><br/>"
+                           "Copyright © kurt.herrmann@gmx.at</h4>")
+        info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(info_label)
+
+        # OK button
+        ok_button = QPushButton("OK")
+        ok_button.clicked.connect(dialog.accept)
+        layout.addWidget(ok_button, alignment=Qt.AlignmentFlag.AlignCenter)
+
+        dialog.setLayout(layout)
+        dialog.exec()
 
     def show_help_dialog(self):
         """Display help file in a dialog"""
