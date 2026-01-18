@@ -257,7 +257,7 @@ class MainWindow(QMainWindow):
 
         if dialog.exec() == QDialog.DialogCode.Accepted:
             type, width, length = dialog.ui.get_values()
-            print("TYPE:", type, "WIDTH:", width, "LENGTH:", length)
+            # print("TYPE:", type, "WIDTH:", width, "LENGTH:", length)
 
             if not (type and  width and length):
                 QMessageBox.warning(None, "Warning", "Parameters are missing !")

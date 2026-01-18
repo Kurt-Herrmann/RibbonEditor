@@ -84,15 +84,40 @@ class Ribbon():
                 print("Type Error !")
                 exit()
 
+        # # only for debugging
+        # for y in range(self.l):  # y .. index to the rows
+        #     for x in range(self.w):  # x .. index inside each row
+        #
+        #         if self.K[x][y].nKtoL:
+        #             coToL = f"nkToL:{self.K[x][y].nKtoL.co} "
+        #         else:
+        #             coToL = "no kKtoL "
+        #
+        #         if self.K[x][y].nKtoR:
+        #             coToR = f"nkToR:{self.K[x][y].nKtoR.co} "
+        #         else:
+        #             coToR = "no nKtoR "
+        #
+        #         if self.K[x][y].endK:
+        #             eKn = f"eKnType:{self.K[x][y].endKtype} "
+        #         else:
+        #             eKn = "no EndKnot "
+        #
+        #         Str = f"Knot:{self.K[x][y].co} KnType:{self.K[x][y].type} LeftThVis:{self.K[x][y].left_thread_vis} "
+        #         Str = Str + eKn + coToL + coToR
+        #
+        #         print(Str)
+        # # only for debugging
+
         self.draw_color_bar(type)
-        print("**** Draw color bar completed !")
+        # print("**** Draw color bar completed !")
         for i in range(width + 1):
             CS = self.StartKnot_list[i]
             color = CS.color
             Kh = CS.Knot
             direction = CS.direction
-            color_name = self.color.print_color_key(color)
-            print(f"Thread {i} color {color_name} 1st pass direction {direction}")
+            # color_name = self.color.print_color_key(color)
+            # print(f"Thread {i} color {color_name} 1st pass direction {direction}")
             help = Kh.set_thread(color, direction, self.thW)
         # run it 2 times to make sure all in colors are set.
         for i in range(width + 1):
@@ -100,9 +125,9 @@ class Ribbon():
             color = CS.color
             Kh = CS.Knot
             direction = CS.direction
-            color_name = self.color.print_color_key(color)
+            # color_name = self.color.print_color_key(color)
             help = Kh.set_thread(color, direction, self.thW)
-        print("Setup completed !")
+        # print("Setup completed !")
         self.row_labels()
 
     def set_type_L(self):
@@ -118,7 +143,7 @@ class Ribbon():
             for x in range(self.w):
                 self.K[x][y].gco.x = self.cBx + self.Ec + self.Vd * x
                 self.K[x][y].gco.y = self.cBy + self.Ec + self.Vd * (x + 2 * y)
-                # print(f"normal, x {x} y {y}  strtK {self.K[x][y].strtK} endK {self.K[x][y].endK}, "
+                # print(f"likeTypeL, x {x} y {y}  strtK {self.K[x][y].strtK} endK {self.K[x][y].endK}, "
                 #       f"type {self.K[x][y].type} eKL {self.K[x][y].edgeKL} eKR {self.K[x][y].edgeKR} "
                 #       f"gco.x {self.K[x][y].gco.x:.0f} gco.y {self.K[x][y].gco.y:.0f}")
                 color = QColor("black")
@@ -142,7 +167,7 @@ class Ribbon():
             for x in range(self.w):
                 self.K[x][y].gco.x = self.cBx + self.Ec + self.Vd * x
                 self.K[x][y].gco.y = self.cBy + self.Ec + self.Vd * (self.w - 1 - x + 2 * y)
-                # print(f"normal, x {x} y {y}  strtK {self.K[x][y].strtK} endK {self.K[x][y].endK}, "
+                # print(f"likeTypeL, x {x} y {y}  strtK {self.K[x][y].strtK} endK {self.K[x][y].endK}, "
                 #       f"type {self.K[x][y].type} eKL {self.K[x][y].edgeKL} eKR {self.K[x][y].edgeKR} "
                 #       f"gco.x {self.K[x][y].gco.x:.0f} gco.y {self.K[x][y].gco.y:.0f}")
                 color = QColor("black")
@@ -167,23 +192,23 @@ class Ribbon():
         self.set_end_knots(True, 0, mid)
         self.set_end_knots(False, mid + 1, self.w)
 
-        # normal direction
+        # likeTypeL direction
         for y in range(self.l):
             for x in range(self.w // 2 + 1):
                 self.K[x][y].gco.x = self.cBx + self.Ec + self.Vd * x
                 self.K[x][y].gco.y = self.cBy + self.Ec + self.Vd * (x + 2 * y)
-                # print(f"normal, x {x} y {y}  strtK {self.K[x][y].strtK} endK {self.K[x][y].endK}, "
+                # print(f"likeTypeL, x {x} y {y}  strtK {self.K[x][y].strtK} endK {self.K[x][y].endK}, "
                 #       f"type {self.K[x][y].type} eKL {self.K[x][y].edgeKL} eKR {self.K[x][y].edgeKR} "
                 #       f"gco.x {self.K[x][y].gco.x:.0f} gco.y {self.K[x][y].gco.y:.0f}")
                 color = QColor("black")
                 self.K[x][y].draw_graphic_items(color, self.thW, self.Kd, self.scene)
 
-        # reverse direction
+        # likeTypeR direction
         for y in range(self.l):
             for x in range(self.w // 2 + 1, self.w):
                 self.K[x][y].gco.x = self.cBx + self.Ec + self.Vd * x
                 self.K[x][y].gco.y = self.cBy + self.Ec + self.Vd * (self.w - 1 - x + 2 * y)
-                # print(f"normal, x {x} y {y}  strtK {self.K[x][y].strtK} endK {self.K[x][y].endK}, "
+                # print(f"likeTypeL, x {x} y {y}  strtK {self.K[x][y].strtK} endK {self.K[x][y].endK}, "
                 #       f"type {self.K[x][y].type} eKL {self.K[x][y].edgeKL} eKR {self.K[x][y].edgeKR} "
                 #       f"gco.x {self.K[x][y].gco.x:.0f} gco.y {self.K[x][y].gco.y:.0f}")
                 color = QColor("black")
@@ -209,23 +234,23 @@ class Ribbon():
         self.set_end_knots(True, mid, self.w - 1)
         self.K[mid][self.l - 1].endKtype = Const.EndKnBoth
 
-        # normal direction
+        # likeTypeL direction
         for y in range(self.l):
             for x in range(mid, self.w):
                 self.K[x][y].gco.x = self.cBx + self.Ec + self.Vd * x
                 self.K[x][y].gco.y = self.cBy + self.Ec + self.Vd * (x + 2 * y)
-                # print(f"normal, x {x} y {y}  strtK {self.K[x][y].strtK} endK {self.K[x][y].endK}, "
+                # print(f"likeTypeL, x {x} y {y}  strtK {self.K[x][y].strtK} endK {self.K[x][y].endK}, "
                 #       f"type {self.K[x][y].type} eKL {self.K[x][y].edgeKL} eKR {self.K[x][y].edgeKR} "
                 #       f"gco.x {self.K[x][y].gco.x:.0f} gco.y {self.K[x][y].gco.y:.0f}")
                 color = QColor("black")
                 self.K[x][y].draw_graphic_items(color, self.thW, self.Kd, self.scene)
 
-        # reverse direction
+        # likeTypeR direction
         for y in range(self.l):
             for x in range(mid):
                 self.K[x][y].gco.x = self.cBx + self.Ec + self.Vd * x
                 self.K[x][y].gco.y = self.cBy + self.Ec + self.Vd * (self.w - 1 - x + 2 * y)
-                # print(f"normal, x {x} y {y}  strtK {self.K[x][y].strtK} endK {self.K[x][y].endK}, "
+                # print(f"likeTypeL, x {x} y {y}  strtK {self.K[x][y].strtK} endK {self.K[x][y].endK}, "
                 #       f"type {self.K[x][y].type} eKL {self.K[x][y].edgeKL} eKR {self.K[x][y].edgeKR} "
                 #       f"gco.x {self.K[x][y].gco.x:.0f} gco.y {self.K[x][y].gco.y:.0f}")
                 color = QColor("black")
@@ -257,8 +282,8 @@ class Ribbon():
         self.set_type(x3, Const.Rk)  # 9
         self.set_visible(x0, x1 + 1, Const.LeftThrdVis)  # 0 - 3
         self.set_visible(x1, x2 + 1, Const.RightThrdVis)  # 4 - 6
-        self.set_visible(x2, x3 + 1, Const.LeftThrdVis)  # 7 - 9
-        self.set_visible(x3, x4 + 1, Const.RightThrdVis)  # 10 - 12
+        self.set_visible(x2, x3, Const.LeftThrdVis)  # 7 - 9
+        self.set_visible(x3 +1, x4 + 1, Const.RightThrdVis)  # 10 - 12
         self.fix_middle_knot_links("M", x1)  # 3 behaves like type M
         self.fix_middle_knot_links("A", x2)  # 6 behaves like type A
         self.fix_middle_knot_links("M", x3)  # 9 behaves like type M
@@ -266,63 +291,43 @@ class Ribbon():
         # set endKtype and next knot in one direction
         self.K[x1][self.l - 1].endKtype = Const.EndKnNone
         self.set_end_knots(True, x0, x1)  # 0 - 3
+        self.set_end_knots(False, x1 + 1, x2 +1)  # 4 - 5
+        self.set_end_knots(True, x2, x3)  # 7 - 9
         self.K[x2][self.l - 1].endKtype = Const.EndKnBoth
-        self.set_end_knots(False, x1 + 1, x2 + 1)  # 4 - 6
         self.K[x3][self.l - 1].endKtype = Const.EndKnNone
-        self.set_end_knots(True, x2 + 1, x3)  # 7 - 9
         self.set_end_knots(False, x3 + 1, x4 + 1)  # 10 - 12
 
-        # only for debugging
-        for y in range(self.l):  # y .. index to the rows
-            for x in range(self.w):  # x .. index inside each row
-
-                if self.K[x][y].nKtoL:
-                    coToL = f"nkToL:{self.K[x][y].nKtoL.co} "
-                else:
-                    coToL = "no kKtoL "
-
-                if self.K[x][y].nKtoR:
-                    coToR = f"nkToR:{self.K[x][y].nKtoR.co} "
-                else:
-                    coToR = "no nKtoR "
-
-                Str = f"Knot:{self.K[x][y].co} "
-                Str = Str + coToL + coToR
-
-                print(Str)
-        # only for debugging
-
-        # normal direction
+        # likeTypeL direction
         for y in range(self.l):
             for x in range(x0, x1 + 1):
                 self.K[x][y].gco.x = self.cBx + self.Ec + self.Vd * x
                 self.K[x][y].gco.y = self.cBy + self.Ec + self.Vd * (2 * y - x0 + x)
                 # print(f"'{x}/{y}';{self.K[x][y].gco.x:.0f};{self.K[x][y].gco.y:.0f}")
-                # print(f"normal, x {x} y {y}  strtK {self.K[x][y].strtK} endK {self.K[x][y].endK}, "
+                # print(f"likeTypeL, x {x} y {y}  strtK {self.K[x][y].strtK} endK {self.K[x][y].endK}, "
                 #       f"type {self.K[x][y].type} eKL {self.K[x][y].edgeKL} eKR {self.K[x][y].edgeKR} "
                 #       f"endKtype {self.K[x][y].endKtype} gco.x {self.K[x][y].gco.x:.0f} gco.y {self.K[x][y].gco.y:.0f}")
                 color = QColor("black")
                 self.K[x][y].draw_graphic_items(color, self.thW, self.Kd, self.scene)
 
-        # reverse direction
+        # likeTypeR direction
         for y in range(self.l):
             for x in range(x1 + 1, x2 + 1):
                 self.K[x][y].gco.x = self.cBx + self.Ec + self.Vd * x
                 self.K[x][y].gco.y = self.cBy + self.Ec + self.Vd * (2 * y + x2 - x)
                 # print(f"'{x}/{y}';{self.K[x][y].gco.x:.0f};{self.K[x][y].gco.y:.0f}")
-                # print(f"normal, x {x} y {y}  strtK {self.K[x][y].strtK} endK {self.K[x][y].endK}, "
+                # print(f"likeTypeL, x {x} y {y}  strtK {self.K[x][y].strtK} endK {self.K[x][y].endK}, "
                 #       f"type {self.K[x][y].type} eKL {self.K[x][y].edgeKL} eKR {self.K[x][y].edgeKR} "
                 #       f"endKtype {self.K[x][y].endKtype} gco.x {self.K[x][y].gco.x:.0f} gco.y {self.K[x][y].gco.y:.0f}")
                 color = QColor("black")
                 self.K[x][y].draw_graphic_items(color, self.thW, self.Kd, self.scene)
 
-        # normal direction
+        # likeTypeL direction
         for y in range(self.l):
             for x in range(x2 + 1, x3 + 1):
                 self.K[x][y].gco.x = self.cBx + self.Ec + self.Vd * x
                 self.K[x][y].gco.y = self.cBy + self.Ec + self.Vd * (2 * y - x2 + x)
                 # print(f"'{x}/{y}';{self.K[x][y].gco.x:.0f};{self.K[x][y].gco.y:.0f}")
-                # print(f"normal, x {x} y {y}  strtK {self.K[x][y].strtK} endK {self.K[x][y].endK}, "
+                # print(f"likeTypeL, x {x} y {y}  strtK {self.K[x][y].strtK} endK {self.K[x][y].endK}, "
                 #       f"type {self.K[x][y].type} eKL {self.K[x][y].edgeKL} eKR {self.K[x][y].edgeKR} "
                 #       f"endKtype {self.K[x][y].endKtype} gco.x {self.K[x][y].gco.x:.0f} gco.y {self.K[x][y].gco.y:.0f}")
                 color = QColor("black")
@@ -334,7 +339,7 @@ class Ribbon():
                 self.K[x][y].gco.x = self.cBx + self.Ec + self.Vd * x
                 self.K[x][y].gco.y = self.cBy + self.Ec + self.Vd * (2 * y + x4 - x)
                 # print(f"'{x}/{y}';{self.K[x][y].gco.x:.0f};{self.K[x][y].gco.y:.0f}")
-                # print(f"normal, x {x} y {y}  strtK {self.K[x][y].strtK} endK {self.K[x][y].endK}, "
+                # print(f"likeTypeL, x {x} y {y}  strtK {self.K[x][y].strtK} endK {self.K[x][y].endK}, "
                 #       f"type {self.K[x][y].type} eKL {self.K[x][y].edgeKL} eKR {self.K[x][y].edgeKR} "
                 #       f"endKtype {self.K[x][y].endKtype} gco.x {self.K[x][y].gco.x:.0f} gco.y {self.K[x][y].gco.y:.0f}")
                 color = QColor("black")
@@ -364,12 +369,12 @@ class Ribbon():
         for x in range(self.w):
             self.K[x][y].endK = True  # end knot
 
-    def make_knot_links(self, normal, start, stop):
+    def make_knot_links(self, likeTypeL, start, stop):
         # at init all knot are type Nk
         for y in range(self.l):  # y .. index to the rows
             for x in range(start, stop):  # x .. index to columns
                 if not self.K[x][y].endK:
-                    if normal:
+                    if likeTypeL:
                         nKtoR = Knot(self.scene, self.KnPnts)
                         nKtoL = Knot(self.scene, self.KnPnts)
                         if self.K[x][y].edgeKL:
@@ -439,10 +444,10 @@ class Ribbon():
                 # print(f" nKtoR  {self.K[x][y].nKtoR.co[0]} ; {self.K[x][y].nKtoR.co[1]} ; "
                 #       f"nKtoL {self.K[x][y].nKtoL.co[0]} ;  {self.K[x][y].nKtoL.co[1]}")
 
-    def set_end_knots(self, normal, start, stop):
+    def set_end_knots(self, likeTypeL, start, stop):
         y = self.l - 1
         for x in range(start, stop):
-            if normal and not self.K[x][y].edgeKR:
+            if likeTypeL and not self.K[x][y].edgeKR:
                 # print(f" Knot x ; {self.K[x][y].co[0]} ; {self.K[x][y].co[1]}")
                 self.K[x][y].endKtype = Const.EndKnLikeTypeL
                 nKtoR = Knot(self.scene, self.KnPnts)
@@ -454,27 +459,6 @@ class Ribbon():
                 nKtoL = Knot(self.scene, self.KnPnts)
                 nKtoL = self.K[x - 1][y]
                 self.K[x][y].nKtoL = nKtoL
-
-    def set_end_knots_W(self, normal, start, stop):
-        y = self.l - 1
-        for x in range(start, stop):
-            if normal:
-                if self.K[x][y].endKtype != Const.EndKnNone:
-                    self.K[x][y].endKtype = Const.EndKnLikeTypeL
-                    nKtoR = Knot(self.scene, self.KnPnts)
-                    nKtoR = self.K[x + 1][y]
-                    self.K[x][y].nKtoR = nKtoR
-            elif not normal:  # reverse
-                if self.K[x][y].endKtype != Const.EndKnBoth:
-                    self.K[x][y].endKtype = Const.EndKnLikeTypeR
-                    nKtoL = Knot(self.scene, self.KnPnts)
-                    nKtoL = self.K[x - 1][y]
-                    self.K[x][y].nKtoL = nKtoL
-                # elif self.K[x][y].endKtype == Const.EndKnBoth:
-                #     nKtoL = Knot(self.scene, self.KnPnts)
-                #     nKtoL = self.K[x + 1][y]
-                #     self.K[x][y].nKtoL = nKtoL
-            # print(f" Knot x ; {self.K[x][y].co[0]} ; {self.K[x][y].co[1]}")
 
     def toggle_type(self, column):
         # toggle between NK and Rk
@@ -551,11 +535,16 @@ class Ribbon():
             x4 = 4 * d
 
             # set repeat pattern
+            # symmetric pattern
             i = 0
             pattern.append(f[i % 8])
             pattern.append(f[i % 8])
             for i in range(1, d):
                 pattern.append(f[i % 8])
+
+            # # use for unsymmetric pattern
+            # for i in range(d +1):
+            #     pattern.append(f[i % 8])
 
             for i in range(0, x1 + 1):
                 colors.append(pattern[i])
@@ -588,13 +577,6 @@ class Ribbon():
         for i in range(self.w + 1):
             # rotate start colors
             fill = colors[i]
-            # draw color bar rectangles
-            # ref = Vector(offset, 0)
-            # CB_start = Vector(self.Ec, self.Ec)
-            # ref1 = ref + CB_start
-            # rect = ColorRect(ref1.x, ref1.y, self.Rd, self.Rd, i)
-            # rect.setPen(penO)
-            # rect.setBrush(fill)
             hK = self.get_start_knot(i, fill)
             nextKnot = hK["Knot"]
             direction = hK["Direction"]
@@ -620,81 +602,6 @@ class Ribbon():
             # offset += self.Vd * self.cBh
             self.scene.addItem(rect)
 
-    # def draw_color_bar(self, type):
-    #     # preset available start colors
-    #     black = QColor("black")
-    #     red = QColor.fromRgb(255, 99, 71)
-    #     green = QColor.fromRgb(0, 255, 0)
-    #     blue = QColor.fromRgb(0, 191, 255)
-    #     grey = QColor("lightgrey")
-    #     darkgrey = QColor("darkgrey")
-    #     cyan = QColor("cyan")
-    #     magenta = QColor.fromRgb(238, 130, 238)
-    #     yellow = QColor("yellow")
-    #     f = [red, green, blue, black, cyan, magenta, yellow, darkgrey]
-    #     colors = []
-    #
-    #     outline = black
-    #     penO = QPen()
-    #     penO.setWidth(1)
-    #     penO.setColor(outline)
-    #
-    #     if type == "L" or type == "R":
-    #         j = 0
-    #         for i in range(self.w + 1):
-    #             color_name = self.color.print_color_key(f[j % 8])
-    #             # print(f"i {i} j {j} color {color_name}")
-    #             colors.append(f[j % 8])
-    #             j += 1
-    #     else:  # type M or A
-    #         mid = self.w // 2
-    #         j = 0
-    #         for i in range(0, mid + 1):
-    #             color_name = self.color.print_color_key(f[j % 8])
-    #             # print(f"i {i} j {j} color {color_name}")
-    #             colors.append(f[j % 8])
-    #             j += 1
-    #         j = mid
-    #         for i in range(self.w + 1, mid + 1, -1):
-    #             color_name = self.color.print_color_key(f[j % 8])
-    #             # print(f"i {i} j {j} color {color_name}")
-    #             colors.append(f[j % 8])
-    #             j -= 1
-    #
-    #     offset = 0  # offset of ColorSelect rectangles
-    #     for i in range(self.w + 1):
-    #         # rotate start colors
-    #         fill = colors[i]
-    #         # draw color bar rectangles
-    #         ref = Vector(offset, 0)
-    #         CB_start = Vector(self.Ec, self.Ec)
-    #         ref1 = ref + CB_start
-    #         rect = ColorRect(ref1.x, ref1.y, self.Rd, self.Rd, i)
-    #         # rect = QGraphicsRectItem(ref1.x, ref1.y, self.Rd, self.Rd)
-    #         rect.setPen(penO)
-    #         rect.setBrush(fill)
-    #         hK = self.get_start_knot(i, fill)
-    #         nextKnot = hK[0]  # Knot
-    #         direction = hK[1]  # input direction to knot
-    #         # print(f"x {nextKnot.co[0]} y {nextKnot.co[1]} gco.x {nextKnot.gco.x:.0f} gco.y {nextKnot.gco.y:.0f}")
-    #         cRect = Vector()
-    #         cRect = self.center(rect)
-    #         cCircle = Vector()
-    #         cCircle = self.center(nextKnot.circle)
-    #         line = QGraphicsLineItem(cRect.x, cRect.y, cCircle.x, cCircle.y)
-    #         penL = QPen()
-    #         penL.setColor(fill)
-    #         penL.setWidth(self.thW)
-    #         line.setPen(penL)
-    #         self.scene.addItem(line)
-    #         StKnot = self.KnotList(self.scene, self.KnPnts)  # save start knot
-    #         StKnot.color = fill  # thread color
-    #         StKnot.Knot = hK[0]  # start knot
-    #         StKnot.direction = hK[1]  # start input direction
-    #         StKnot.line = line
-    #         self.StartKnot_list.append(StKnot)
-    #         offset += self.Vd * self.cBh
-    #         self.scene.addItem(rect)
 
     def get_start_knot(self, i, fill):
         nextKnot = Knot(self.scene, self.KnPnts)
@@ -842,7 +749,7 @@ class Ribbon():
                     hK["Rect"] = Rect
                 elif i == mid + 1:
                     hK["Knot"] = self.K[mid][0]
-                    hK["Direction"] = Const.LeftIn
+                    hK["Direction"] = Const.RightIn
                     self.K[i][0].color_in_right = fill
                     ref = self.K[mid][0].gco + self.dis_right
                     Rect = ColorRect.rect_45(ref.x, ref.y, self.Rd, self.Rd, i)
@@ -864,16 +771,16 @@ class Ribbon():
                 x2 = 2 * d
                 x3 = 3 * d
                 x4 = 4 * d
-                # print(f"i {i}")
+
                 if i == 0:
                     x = 0
                     hK["Knot"] = self.K[x][0]
                     hK["Direction"] = Const.LeftIn
                     ref = self.K[x][0].gco + self.dis_left
                     self.K[x][0].color_in_left = fill
-                    color_name = self.color.print_color_key(fill)
-                    print(
-                        f"i == 0;                 i:{i} color:{color_name} K.co:{self.K[x][0].co} Dir:{hK["Direction"]}")
+                    # color_name = self.color.print_color_key(fill)
+                    # print(
+                    #     f"i == 0;                 i:{i} color:{color_name} K.co:{self.K[x][0].co} Dir:{hK["Direction"]}")
                     Rect = ColorRect.rect_45(ref.x, ref.y, self.Rd, self.Rd, i)
                     hK["Rect"] = Rect
                 elif i == 1:
@@ -881,9 +788,9 @@ class Ribbon():
                     hK["Knot"] = self.K[x][0]
                     hK["Direction"] = Const.RightIn
                     ref = self.K[x][0].gco + self.dis_none
-                    color_name = self.color.print_color_key(fill)
-                    print(
-                        f"i == 1;                 i:{i} color:{color_name} K.co:{self.K[x][0].co} Dir:{hK["Direction"]}")
+                    # color_name = self.color.print_color_key(fill)
+                    # print(
+                    #     f"i == 1;                 i:{i} color:{color_name} K.co:{self.K[x][0].co} Dir:{hK["Direction"]}")
                     Rect = ColorRect.rect_45(ref.x, ref.y, self.Rd, self.Rd, i)
                     hK["Rect"] = Rect
                 elif i >= 2 and i <= x1:
@@ -892,9 +799,9 @@ class Ribbon():
                     hK["Direction"] = Const.RightIn
                     ref = self.K[x][0].gco + self.dis_none
                     self.K[x][0].color_in_right = fill
-                    color_name = self.color.print_color_key(fill)
-                    print(
-                        f"i >= 2 and i <= x1;     i:{i} color:{color_name} K.co:{self.K[x][0].co} Dir:{hK["Direction"]}")
+                    # color_name = self.color.print_color_key(fill)
+                    # print(
+                    #     f"i >= 2 and i <= x1;     i:{i} color:{color_name} K.co:{self.K[x][0].co} Dir:{hK["Direction"]}")
                     Rect = ColorRect.rect_45(ref.x, ref.y, self.Rd, self.Rd, i)
                     hK["Rect"] = Rect
                 if i > x1 and i < x2 + 1:
@@ -903,9 +810,9 @@ class Ribbon():
                     hK["Direction"] = Const.LeftIn
                     self.K[x][0].color_in_left = fill
                     ref = self.K[x][0].gco + self.dis_none
-                    color_name = self.color.print_color_key(fill)
-                    print(
-                        f"i > x1 and i < x2 + 1;  i:{i} color:{color_name} K.co:{self.K[x][0].co} Dir:{hK["Direction"]}")
+                    # color_name = self.color.print_color_key(fill)
+                    # print(
+                    #     f"i > x1 and i < x2 + 1;  i:{i} color:{color_name} K.co:{self.K[x][0].co} Dir:{hK["Direction"]}")
                     Rect = ColorRect.rect_45(ref.x, ref.y, self.Rd, self.Rd, i)
                     hK["Rect"] = Rect
                 elif i >= x2 + 1 and i < x3 + 1:
@@ -914,9 +821,9 @@ class Ribbon():
                     hK["Direction"] = Const.RightIn
                     self.K[x][0].color_in_right = fill
                     ref = self.K[x][0].gco + self.dis_none
-                    color_name = self.color.print_color_key(fill)
-                    print(
-                        f"i >= x2 and i < x3 + 1; i:{i} color:{color_name} K.co:{self.K[x][0].co} Dir:{hK["Direction"]}")
+                    # color_name = self.color.print_color_key(fill)
+                    # print(
+                    #     f"i >= x2 and i < x3 + 1; i:{i} color:{color_name} K.co:{self.K[x][0].co} Dir:{hK["Direction"]}")
                     Rect = ColorRect.rect_45(ref.x, ref.y, self.Rd, self.Rd, i)
                     hK["Rect"] = Rect
                 elif i >= x3 and i < x4 + 1:
@@ -925,9 +832,9 @@ class Ribbon():
                     hK["Direction"] = Const.LeftIn
                     self.K[x][0].color_in_right = fill
                     ref = self.K[x][0].gco + self.dis_none
-                    color_name = self.color.print_color_key(fill)
-                    print(
-                        f"i >= x3 and i < x4;     i:{i} color:{color_name} K.co:{self.K[x][0].co} Dir:{hK["Direction"]}")
+                    # color_name = self.color.print_color_key(fill)
+                    # print(
+                    #     f"i >= x3 and i < x4;     i:{i} color:{color_name} K.co:{self.K[x][0].co} Dir:{hK["Direction"]}")
                     Rect = ColorRect.rect_45(ref.x, ref.y, self.Rd, self.Rd, i)
                     hK["Rect"] = Rect
                 elif i == x4 + 1:
@@ -935,9 +842,9 @@ class Ribbon():
                     hK["Knot"] = self.K[x][0]
                     hK["Direction"] = Const.RightIn
                     ref = self.K[x][0].gco + self.dis_right
-                    color_name = self.color.print_color_key(fill)
-                    print(
-                        f"i == x4;                i:{i} color:{color_name} K.co:{self.K[x][0].co} Dir:{hK["Direction"]}")
+                    # color_name = self.color.print_color_key(fill)
+                    # print(
+                    #     f"i == x4;                i:{i} color:{color_name} K.co:{self.K[x][0].co} Dir:{hK["Direction"]}")
                     self.K[x][0].color_in_left = fill
                     Rect = ColorRect.rect_45(ref.x, ref.y, self.Rd, self.Rd, i)
                     hK["Rect"] = Rect
@@ -1395,13 +1302,12 @@ class Knot():
     def set_thread(self, color, direction, thW):
         inDir = direction
         color_name = self.colors.print_color_key(color)
-        # print(f"set_thread, co: {self.co}, type {self.type}, direction: {direction} color {color_name}")
         h = self.next_direction(inDir, color, thW)
         if h["Stop"]:
             return ()
         nxtKnot = h["nxtKnot"]
         nxtDir = h["nxtDir"]
-        # print(f"set_thread, co: {nxtKnot.co}, type {nxtKnot.type}, direction: {nxtDir} color {color_name}")
+        # print(f"set_thread, Knt co:{self.co}, Knt type:{self.type}, nxtKnt co:{nxtKnot.co}, direction:{nxtDir}, color:{color_name}")
         nxtKnot.set_thread(color, nxtDir, thW)
 
     def set_knot_color(self):
@@ -1421,8 +1327,8 @@ class Knot():
 
     def next_direction(self, direction, color, thW):
         p_color = self.colors.print_color_key(color)
-        print(f"next_direction_in, co {self.co} type {self.type} , "
-              f"color {p_color}, direction {direction}")
+        # print(f"next_direction_in, co {self.co} type {self.type} , "
+        #       f"color {p_color}, direction {direction}")
         inDir_actualKnot = direction
         inDir_nKnot = direction
         # nKnot = Knot(self.scene, self.kp)
