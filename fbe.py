@@ -3,7 +3,7 @@ import os
 import sys
 from datetime import datetime
 
-from PyQt6.QtCore import QUrl, QPoint, QMarginsF, QSizeF
+from PyQt6.QtCore import QUrl, QPoint, QMarginsF, QSizeF, QRectF
 from PyQt6.QtGui import QPainter, QKeySequence, QAction, QTransform, QPdfWriter, QPageSize, QPageLayout, QFont, QUndoStack
 from PyQt6.QtWidgets import (QApplication, QGraphicsScene, QMainWindow, QGraphicsView,
                              QDialog, QMessageBox, QSizePolicy, QFileDialog, QVBoxLayout,
@@ -455,9 +455,10 @@ class MainWindow(QMainWindow):
                 # Using Cambria 11pt for all text
                 header_height = 70  # pixels (2 lines + margin)
 
-            # Get scene dimensions
-            scene_width = self.R.cplW
-            scene_height = self.R.cplL
+            # Get scene dimensions scaled by current zoom factor
+            zoom = self.view.zoom_factor
+            scene_width = self.R.cplW * zoom
+            scene_height = self.R.cplL * zoom
 
             # Calculate total content height (scene + header if applicable)
             total_content_height = scene_height + header_height
@@ -524,10 +525,19 @@ class MainWindow(QMainWindow):
                                  header_text_lines[1])
                 current_y += text_rect.height() + 30  # Add margin below header
 
-            # Calculate target rectangle for scene rendering
-            scene_target_rect = page_rect.toRectF()
-            scene_target_rect.setTop(current_y)
-            scene_target_rect.setHeight(page_rect.height() - (current_y - page_rect.top()))
+            # Calculate target rectangle for scene rendering (centered)
+            # Convert scene dimensions to PDF coordinates (at 300 DPI)
+            scene_width_pdf = scene_width * 300 / 96
+            scene_height_pdf = scene_height * 300 / 96
+
+            # Center horizontally
+            x_offset = (page_rect.width() - scene_width_pdf) / 2
+            scene_target_rect = QRectF(
+                x_offset,
+                current_y,
+                scene_width_pdf,
+                scene_height_pdf
+            )
 
             # Render the scene
             self.scene.render(painter, target=scene_target_rect, source=self.scene.sceneRect())
