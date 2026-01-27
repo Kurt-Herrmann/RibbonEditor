@@ -23,7 +23,7 @@ class Ribbon():
         self.Kd = 40  # knot diameter
         self.Rd = self.Kd * 0.9
         self.Vd = 35  # factor to define horizontal and vertical distance, 1 . touching quads
-        self.Ec = 0.5 * self.Kd  # edge clearance ribbon
+        self.Ec = 1.2 * self.Kd  # edge clearance ribbon
         # self.cBh = 1.4  # horizontal spacing factor for colour bar
         # self.cBv = 3  # vertical spacing factor for color bar
         self.cBx = 0  # horizontal offset ribbon to color bar
@@ -49,8 +49,10 @@ class Ribbon():
         # displacement of ColorRects for all types
         x_adjust = (self.Kd - self.Rd) / 2
         self.dis_left = Vector(-self.f_x * self.Vd, -self.f_y * self.Vd)  # x displacement to the left
+        self.dis_left_high = Vector(- 0.6 * self.f_x * self.Vd, - 1.4 * self.f_y * self.Vd)  # x displacement to left
         self.dis_none = Vector(x_adjust, -self.f_y * self.Vd)  # no x displacement
-        self.dis_right = Vector(x_adjust + self.f_x * self.Vd, -self.f_y * self.Vd)  # x displacement to the right
+        self.dis_right = Vector(x_adjust + self.f_x * self.Vd, -self.f_y * self.Vd)  # x displacement to right
+        self.dis_right_high = Vector(x_adjust + 0.6 * self.f_x * self.Vd, - 1.4 * self.f_y * self.Vd)  # x displacement to right
 
         self.thW = self.Kd // 6
         if self.thW == 0:
@@ -283,7 +285,7 @@ class Ribbon():
         self.set_visible(x0, x1 + 1, Const.LeftThrdVis)  # 0 - 3
         self.set_visible(x1, x2 + 1, Const.RightThrdVis)  # 4 - 6
         self.set_visible(x2, x3, Const.LeftThrdVis)  # 7 - 9
-        self.set_visible(x3 +1, x4 + 1, Const.RightThrdVis)  # 10 - 12
+        self.set_visible(x3 + 1, x4 + 1, Const.RightThrdVis)  # 10 - 12
         self.fix_middle_knot_links("M", x1)  # 3 behaves like type M
         self.fix_middle_knot_links("A", x2)  # 6 behaves like type A
         self.fix_middle_knot_links("M", x3)  # 9 behaves like type M
@@ -291,7 +293,7 @@ class Ribbon():
         # set endKtype and next knot in one direction
         self.K[x1][self.l - 1].endKtype = Const.EndKnNone
         self.set_end_knots(True, x0, x1)  # 0 - 3
-        self.set_end_knots(False, x1 + 1, x2 +1)  # 4 - 5
+        self.set_end_knots(False, x1 + 1, x2 + 1)  # 4 - 5
         self.set_end_knots(True, x2, x3)  # 7 - 9
         self.K[x2][self.l - 1].endKtype = Const.EndKnBoth
         self.K[x3][self.l - 1].endKtype = Const.EndKnNone
@@ -602,7 +604,6 @@ class Ribbon():
             # offset += self.Vd * self.cBh
             self.scene.addItem(rect)
 
-
     def get_start_knot(self, i, fill):
         nextKnot = Knot(self.scene, self.KnPnts)
         Rect = None
@@ -809,7 +810,7 @@ class Ribbon():
                     hK["Knot"] = self.K[x][0]
                     hK["Direction"] = Const.LeftIn
                     self.K[x][0].color_in_left = fill
-                    ref = self.K[x][0].gco + self.dis_none
+                    ref = self.K[x][0].gco + self.dis_left_high
                     # color_name = self.color.print_color_key(fill)
                     # print(
                     #     f"i > x1 and i < x2 + 1;  i:{i} color:{color_name} K.co:{self.K[x][0].co} Dir:{hK["Direction"]}")
@@ -820,7 +821,7 @@ class Ribbon():
                     hK["Knot"] = self.K[x][0]
                     hK["Direction"] = Const.RightIn
                     self.K[x][0].color_in_right = fill
-                    ref = self.K[x][0].gco + self.dis_none
+                    ref = self.K[x][0].gco + self.dis_right_high
                     # color_name = self.color.print_color_key(fill)
                     # print(
                     #     f"i >= x2 and i < x3 + 1; i:{i} color:{color_name} K.co:{self.K[x][0].co} Dir:{hK["Direction"]}")
