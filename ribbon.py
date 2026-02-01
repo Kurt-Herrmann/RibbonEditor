@@ -21,20 +21,7 @@ class Ribbon():
         self.type = type
         self.StartKnot_list = []
 
-        self.Kd = 40  # knot diameter 40
-        self.Rd = self.Kd * 0.9  # size of diamonds
-        self.Vd = 35  # factor to define horizontal and vertical distance, 1 . touching quads 35
-        self.Ec = 0 * self.Kd  # edge clearance ribbon
-        self.f_y = 2.3  # vertical offset of color bar rectangles to related knot
-        self.f_x = 1.6  # horizontal offset of color bar rectangles for 2 thread knots and type A
-        self.sqrt_2 = math.sqrt(2)
-
-        # displacement of ColorRects for all types
-        self.dis_left = Vector(-self.f_x * self.Vd, -self.f_y * self.Vd)  # x displacement to the left
-        self.dis_left_high = Vector(- 0.6 * self.f_x * self.Vd, - 1.4 * self.f_y * self.Vd)  # x displacement to left
-        self.dis_none = Vector(0, -self.f_y * self.Vd)  # no x displacement
-        self.dis_right = Vector(self.f_x * self.Vd, -self.f_y * self.Vd)  # x displacement to right
-        self.dis_right_high = Vector(0.6 * self.f_x * self.Vd, - 1.4 * self.f_y * self.Vd)  # x displacement to right
+        self.calculate_viewport_dimensions()
 
         self.color = my_Colors()
         self.set_thread_width()
@@ -44,8 +31,6 @@ class Ribbon():
         # generate relative knot point coordinates
         self.KnPnts = KnotPoints(self.Kd, self.Vd)
         self.make_empty_ribbon()
-
-        self.calculate_viewport_dimensions()
 
         x = 0
         for y in range(self.l):
@@ -327,10 +312,26 @@ class Ribbon():
         self.scene.addItem(outline)
 
     def calculate_viewport_dimensions(self):
+        self.Kd = 40  # knot diameter 40
+        self.Rd = self.Kd * 0.9  # size of diamonds
+        self.Vd = 35  # factor to define horizontal and vertical distance, 1 . touching quads 35
+        self.Ec = 0 * self.Kd  # edge clearance ribbon
+        self.f_y = 2.3  # vertical offset of color bar rectangles to related knot
+        self.f_x = 1.6  # horizontal offset of color bar rectangles for 2 thread knots and type A
+        self.sqrt_2 = math.sqrt(2)
+
+        # displacement of ColorRects for all types
+        self.dis_left = Vector(-self.f_x * self.Vd, -self.f_y * self.Vd)  # x displacement to the left
+        self.dis_left_high = Vector(- 0.6 * self.f_x * self.Vd, - 1.4 * self.f_y * self.Vd)  # x displacement to left
+        self.dis_none = Vector(0, -self.f_y * self.Vd)  # no x displacement
+        self.dis_right = Vector(self.f_x * self.Vd, -self.f_y * self.Vd)  # x displacement to right
+        self.dis_right_high = Vector(0.6 * self.f_x * self.Vd, - 1.4 * self.f_y * self.Vd)  # x displacement to right
 
         # arc
-        arc_left = self.K[0][0].kp.PMa.x
-        arc_dia = self.K[0][0].kp.ArcQuadSide
+        hkl = KnotPoints(self.Kd,self.Vd)
+        hkl.adjust
+        arc_left = hkl.PMa.x
+        arc_dia = hkl.ArcQuadSide
         arc_ad = arc_dia + arc_left
 
         hw = (self.w - 1) * self.Vd
