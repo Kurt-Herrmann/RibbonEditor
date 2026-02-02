@@ -304,7 +304,7 @@ class MainWindow(QMainWindow):
         self.window_h = int(self.R.cplL + 2 * self.window_edge)
 
         self.scene.setSceneRect(0, 0, self.R.cplW, self.R.cplL)
-        self.setGeometry(300, 20, self.window_w, 1000)
+        self.setGeometry(300, 20, self.window_w, 800)
 
         # Update undo/redo action states
         self._update_undo_actions()
