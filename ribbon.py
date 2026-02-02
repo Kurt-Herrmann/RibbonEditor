@@ -20,16 +20,49 @@ class Ribbon():
         self.l = length
         self.type = type
         self.StartKnot_list = []
-
-        self.calculate_dimensions()
-
-        self.color = my_Colors()
-        self.set_thread_width()
+        self.Kd = 40  # knot diameter
+        self.Rd = self.Kd * 0.9
+        self.Vd = 35  # factor to define horizontal and vertical distance, 1 . touching quads
+        self.Ec = 1.2 * self.Kd  # edge clearance ribbon
+        # self.cBh = 1.4  # horizontal spacing factor for colour bar
+        # self.cBv = 3  # vertical spacing factor for color bar
+        self.cBx = 0  # horizontal offset ribbon to color bar
+        self.f_y = 2.3  # vertical offset of color bar rectangles to related knot
+        self.f_x = 1.6  # horizontal offset of color bar rectangles for 2 thread knots and type A
+        self.sqrt_2 = math.sqrt(2)
         self.changed = False
         self.undo_stack = None  # Will be set by MainWindow
 
-        self.make_empty_ribbon()
+        # needed y-distance for color bar
+        if self.type == "A":
+            self.cBy = - self.w // 2 * self.Vd + (self.f_y - 0.3) * self.Vd + self.sqrt_2 * self.Rd
+        else:
+            self.cBy = self.f_y * self.Vd
 
+        self.cBx = self.f_x * self.Vd
+
+        self.cplW = ((self.w - 1) * self.Vd + self.Kd +
+                     2 * self.sqrt_2 * self.Rd + self.f_x * self.Vd)  # complete width
+
+        self.cplL = 0  # complete length
+
+        # displacement of ColorRects for all types
+        x_adjust = (self.Kd - self.Rd) / 2
+        self.dis_left = Vector(-self.f_x * self.Vd, -self.f_y * self.Vd)  # x displacement to the left
+        self.dis_left_high = Vector(- 0.6 * self.f_x * self.Vd, - 1.4 * self.f_y * self.Vd)  # x displacement to left
+        self.dis_none = Vector(x_adjust, -self.f_y * self.Vd)  # no x displacement
+        self.dis_right = Vector(x_adjust + self.f_x * self.Vd, -self.f_y * self.Vd)  # x displacement to right
+        self.dis_right_high = Vector(x_adjust + 0.6 * self.f_x * self.Vd, - 1.4 * self.f_y * self.Vd)  # x displacement to right
+
+        self.thW = self.Kd // 6
+        if self.thW == 0:
+            self.thW = 1
+        self.thW = int(self.thW)
+        self.color = my_Colors()
+
+        # generate relative knot point coordinates
+        self.KnPnts = KnotPoints(self.Kd, self.Vd)
+        self.make_empty_ribbon()
         x = 0
         for y in range(self.l):
             self.K[x][y].edgeKL = True  # edge knot left
@@ -38,7 +71,7 @@ class Ribbon():
             self.K[x][y].edgeKR = True  # edge knot right
 
         # define different ribbon types
-        match self.type:
+        match type:
             case "L":
                 self.set_type_L()
             case "R":
@@ -106,6 +139,8 @@ class Ribbon():
         # set end knot types and next knot in one direction
         self.set_end_knots(True, 0, self.w - 1)
 
+        self.cBx += 0.5 * self.Vd
+
         for y in range(self.l):
             for x in range(self.w):
                 self.K[x][y].gco.x = self.cBx + self.Ec + self.Vd * x
@@ -116,6 +151,8 @@ class Ribbon():
                 color = QColor("black")
                 self.K[x][y].draw_graphic_items(color, self.thW, self.Kd, self.scene)
 
+        # self.cplW = self.w * self.cBh * self.Vd + self.Rd + 2 * self.Ec
+        self.cplL = (self.w - 1) * self.Vd + (self.l - 1) * 2 * self.Vd + 2 * self.Kd + self.cBy
         outline = QGraphicsRectItem(0, 0, self.cplW, self.cplL)
         self.scene.addItem(outline)
 
@@ -125,6 +162,8 @@ class Ribbon():
 
         # set end knot types and next knot in one direction
         self.set_end_knots(False, 1, self.w)
+
+        self.cBx -= 0.5 * self.Vd
 
         for y in range(self.l):
             for x in range(self.w):
@@ -136,6 +175,8 @@ class Ribbon():
                 color = QColor("black")
                 self.K[x][y].draw_graphic_items(color, self.thW, self.Kd, self.scene)
 
+        # self.cplW = self.w * self.cBh * self.Vd + self.Rd + 2 * self.Ec
+        self.cplL = (self.w - 1) * self.Vd + (self.l - 1) * 2 * self.Vd + 2 * self.Kd + self.cBy
         outline = QGraphicsRectItem(0, 0, self.cplW, self.cplL)
         self.scene.addItem(outline)
 
@@ -175,6 +216,8 @@ class Ribbon():
                 color = QColor("black")
                 self.K[x][y].draw_graphic_items(color, self.thW, self.Kd, self.scene)
 
+        # self.cplW = self.w * self.cBh * self.Vd + self.Rd + 2 * self.Ec
+        self.cplL = (self.w - 1) / 2 * self.Vd + (self.l - 1) * 2 * self.Vd + 2 * self.Kd + self.cBy
         outline = QGraphicsRectItem(0, 0, self.cplW, self.cplL)
         self.scene.addItem(outline)
 
@@ -215,6 +258,8 @@ class Ribbon():
                 color = QColor("black")
                 self.K[x][y].draw_graphic_items(color, self.thW, self.Kd, self.scene)
 
+        # self.cplW = self.w * self.cBh * self.Vd + self.Rd + 2 * self.Ec
+        self.cplL = (self.w - 1) * self.Vd + (self.l - 1) * 2 * self.Vd + 2 * self.Kd + self.cBy
         outline = QGraphicsRectItem(0, 0, self.cplW, self.cplL)
         self.scene.addItem(outline)
 
@@ -302,126 +347,14 @@ class Ribbon():
                 color = QColor("black")
                 self.K[x][y].draw_graphic_items(color, self.thW, self.Kd, self.scene)
 
+        # self.cplW = self.w * self.cBh * self.Vd + self.Rd + 2 * self.Ec
+        self.cplL = (self.w - 1) / 2 * self.Vd + (self.l - 1) * 2 * self.Vd + 2 * self.Kd + self.cBy
         outline = QGraphicsRectItem(0, 0, self.cplW, self.cplL)
         self.scene.addItem(outline)
 
-    def calculate_dimensions(self):
-        self.Kd = 40  # knot diameter 40
-        self.Rd = self.Kd * 0.9  # size of diamonds
-        self.Vd = 35  # factor to define horizontal and vertical distance, 1 . touching quads 35
-        self.Ec = 0.8 * self.Kd  # edge clearance ribbon
-        self.f_y = 2.3  # vertical offset of color bar rectangles to related knot
-        self.f_x = 1.6  # horizontal offset of color bar rectangles for 2 thread knots and type A
-        self.sqrt_2 = math.sqrt(2)
-
-        # displacement of ColorRects for all types
-        self.dis_left = Vector(-self.f_x * self.Vd, -self.f_y * self.Vd)  # x displacement to the left
-        self.dis_left_high = Vector(- 0.6 * self.f_x * self.Vd, - 1.4 * self.f_y * self.Vd)  # x displacement to left
-        self.dis_none = Vector(0, -self.f_y * self.Vd)  # no x displacement
-        self.dis_right = Vector(self.f_x * self.Vd, -self.f_y * self.Vd)  # x displacement to right
-        self.dis_right_high = Vector(0.6 * self.f_x * self.Vd, - 1.4 * self.f_y * self.Vd)  # x displacement to right
-
-        # arc
-        hkl = KnotPoints(self.Kd, self.Vd)
-        hkl.adjust
-        arc_left = hkl.RefPtArcLft.x
-        arc_dia = hkl.ArcQuadSide
-        arc_ad = arc_dia + arc_left
-
-        hw = (self.w - 1) * self.Vd
-
-        match self.type:
-            case "L":
-                hw1 = - self.dis_left.x
-                hw1 += self.Rd * (self.sqrt_2 - 1) / 2
-                self.cplW = hw + hw1 + self.Kd + 1.5 * self.Vd + 2 * self.Ec
-                hl = (2 * (self.l - 1) + (self.w - 1)) * self.Vd + self.Kd
-                hl1 = - self.dis_left.y
-                hl1 += self.Rd * (self.sqrt_2 - 1) / 2
-                self.cplL = hl + hl1 + 2 * self.Ec
-                # Coordinate of left top start point for 1st knot
-                self.cBx = hw1
-                self.cBy = hl1
-                print(f"hw {hw:.2f}, hw1: {hw1:.2f}, cplW: {self.cplW:.2f}, hl: {hl:.2f}, "
-                      f"hl1: {hl1:.2f}, cpLL: {self.cplL:.2f}, cBx: {self.cBx:.2f}, cBy: {self.cBy:.2f}")
-            case "R":
-                hw1 = self.dis_right.x
-                hw1 += self.Rd * (self.sqrt_2 - 1) / 2
-                self.cplW = hw + hw1 + 2.5 * self.Vd + 2 * self.Ec
-                # self.cplW = 0.5 * self.Vd + arc_ad + (self.w - 1) * self.Vd + hw1
-                hl = (2 * (self.l - 1) + (self.w - 1)) * self.Vd + self.Kd
-                hl1 = - self.dis_left.y
-                hl1 += self.Rd * (self.sqrt_2 - 1) / 2
-                self.cplL = hl + hl1 + 2 * self.Ec
-                # Coordinate of left top start point for 1st knot
-                self.cBx = 1.5 * self.Vd
-                self.cBy = hl1
-                print(f"hw {hw:.2f}, hw1: {hw1:.2f}, cplW: {self.cplW:.2f}, hl: {hl:.2f}, "
-                      f"hl1: {hl1:.2f}, cpLL: {self.cplL:.2f}, cBx: {self.cBx:.2f}, cBy: {self.cBy:.2f}")
-            case "M":
-                hw1 = - self.dis_left.x
-                hw1 += self.Rd * (self.sqrt_2 - 1) / 2
-                hw2 = self.dis_right.x
-                hw2 += self.Rd * (1 + self.sqrt_2) / 2
-                # print(f"hw2: {hw2:.2f}")
-                self.cplW = hw + hw1 + hw2 + 2 * self.Ec
-                hl = (2 * (self.l - 1) + (self.w - 1) / 2) * self.Vd + self.Kd
-                hl1 = -self.dis_left.y
-                hl1 += self.Rd * (self.sqrt_2 - 1) / 2
-                self.cplL = hl + hl1 + 2 * self.Ec
-                self.cBx = hw1
-                self.cBy = hl1
-                # print(f"hw {hw:.2f}, hw1: {hw1:.2f}, cplW: {self.cplW:.2f}, hl: {hl:.2f}, "
-                #       f"hl1: {hl1:.2f}, cpLL: {self.cplL:.2f}, cBx: {self.cBx:.2f}, cBy: {self.cBy:.2f}")
-            case "A":
-                hw1 = - self.dis_left.x
-                hw1 += self.Rd * (self.sqrt_2 - 1) / 2
-                hw2 = self.dis_right.x
-                hw2 += self.Rd * (1 + self.sqrt_2) / 2
-                self.cplW = hw + hw1 + hw2 + 2 * self.Ec
-                hl = (2 * (self.l - 1) + (self.w - 1) / 2) * self.Vd + self.Kd
-                hl1 = -self.dis_left.y
-                hl1 += self.Rd * (self.sqrt_2 - 1) / 2
-                self.cplL = hl + hl1 + 2 * self.Ec
-                # Coordinate of left top start point for 1st knot
-                self.cBx = hw1
-                self.cBy = hl1 - (self.w - 1) / 2 * self.Vd
-                print(f"hw {hw:.2f}, Vd: {self.Vd:.2f}, cplW: {self.cplW:.2f}, hl: {hl:.2f}, "
-                      f"hl1: {hl1:.2f}, cpLL: {self.cplL:.2f}, cBx: {self.cBx:.2f}, cBy: {self.cBy:.2f}")
-            case "W":
-                hw1 = - self.dis_left.x
-                hw1 += self.Rd * (self.sqrt_2 - 1) / 2
-                hw2 = self.dis_right.x
-                hw2 += self.Rd * (1 + self.sqrt_2) / 2
-                # print(f"hw2: {hw2:.2f}")
-                self.cplW = hw + hw1 + hw2 + 2 * self.Ec
-                hl = (2 * (self.l - 1) + (self.w - 1) / 4) * self.Vd + self.Kd
-                hl1 = -self.dis_left.y
-                hl1 += self.Rd * (self.sqrt_2 - 1) / 2
-                hl2 = -self.dis_left_high.y
-                hl2 += self.Rd * (self.sqrt_2 - 1) / 2
-                if hl2 > hl1:
-                    hl1 = hl2
-                self.cplL = hl + hl1 + 2 * self.Ec
-                # Coordinate of left top start point for 1st knot
-                self.cBx = hw1
-                self.cBy = hl1
-                print(f"hw: {hw:.2f}, hw1: {hw1:.2f}, hw2: {hw2:.2f}, cplW: {self.cplW:.2f}, "
-                      f"hl: {hl:.2f}, hl1: {hl1:.2f}, cpLL: {self.cplL:.2f}, cBx: {self.cBx:.2f}, cBy: {self.cBy:.2f}")
-            case _:
-                print("Type Error !")
-                exit()
-
-    def set_thread_width(self):
-        self.thW = self.Kd // 6  # width of threads
-        if self.thW == 0:
-            self.thW = 1
-        self.thW = int(self.thW)
-
     def make_empty_ribbon(self):
-        # generate relative knot point coordinates
-        self.KnPnts = KnotPoints(self.Kd, self.Vd)
         self.K = [[Knot(self.scene, self.KnPnts) for _ in range(self.l)] for _ in range(self.w)]
+
         # only for debug ?
         for y in range(self.l):  # y .. index to the rows
             for x in range(self.w):  # x .. index inside each row
@@ -662,7 +595,7 @@ class Ribbon():
             penL.setWidth(self.thW)
             line.setPen(penL)
             self.scene.addItem(line)
-            StKnot = KnotList(self.scene, self.KnPnts)  # save start knot
+            StKnot = self.KnotList(self.scene, self.KnPnts)  # save start knot
             StKnot.color = fill  # thread color
             StKnot.Knot = hK["Knot"]  # start knot
             StKnot.direction = hK["Direction"]  # start input direction
@@ -1076,13 +1009,12 @@ class Ribbon():
         scene = self.scene()
         return getattr(scene, "ribbon", None) if scene else None
 
-
-class KnotList():
-    def __init__(self, scene, KnPnts):
-        self.color = QColor()
-        self.Knot = Knot(scene, KnPnts)
-        self.direction = Const.LeftIn
-        self.line = QGraphicsLineItem()
+    class KnotList():
+        def __init__(self, scene, KnPnts):
+            self.color = QColor()
+            self.Knot = Knot(scene, KnPnts)
+            self.direction = Const.LeftIn
+            self.line = QGraphicsLineItem()
 
 
 class Vector:  # vector
