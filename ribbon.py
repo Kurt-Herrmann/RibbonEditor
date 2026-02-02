@@ -21,7 +21,7 @@ class Ribbon():
         self.type = type
         self.StartKnot_list = []
 
-        self.calculate_viewport_dimensions()
+        self.calculate_dimensions()
 
         self.color = my_Colors()
         self.set_thread_width()
@@ -305,7 +305,7 @@ class Ribbon():
         outline = QGraphicsRectItem(0, 0, self.cplW, self.cplL)
         self.scene.addItem(outline)
 
-    def calculate_viewport_dimensions(self):
+    def calculate_dimensions(self):
         self.Kd = 40  # knot diameter 40
         self.Rd = self.Kd * 0.9  # size of diamonds
         self.Vd = 35  # factor to define horizontal and vertical distance, 1 . touching quads 35
