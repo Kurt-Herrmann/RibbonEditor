@@ -28,8 +28,6 @@ class Ribbon():
         self.changed = False
         self.undo_stack = None  # Will be set by MainWindow
 
-        # generate relative knot point coordinates
-        self.KnPnts = KnotPoints(self.Kd, self.Vd)
         self.make_empty_ribbon()
 
         x = 0
@@ -108,8 +106,6 @@ class Ribbon():
         # set end knot types and next knot in one direction
         self.set_end_knots(True, 0, self.w - 1)
 
-        self.cBx += 0.5 * self.Vd
-
         for y in range(self.l):
             for x in range(self.w):
                 self.K[x][y].gco.x = self.cBx + self.Ec + self.Vd * x
@@ -129,8 +125,6 @@ class Ribbon():
 
         # set end knot types and next knot in one direction
         self.set_end_knots(False, 1, self.w)
-
-        self.cBx -= 0.5 * self.Vd
 
         for y in range(self.l):
             for x in range(self.w):
@@ -315,7 +309,7 @@ class Ribbon():
         self.Kd = 40  # knot diameter 40
         self.Rd = self.Kd * 0.9  # size of diamonds
         self.Vd = 35  # factor to define horizontal and vertical distance, 1 . touching quads 35
-        self.Ec = 0 * self.Kd  # edge clearance ribbon
+        self.Ec = 0.8 * self.Kd  # edge clearance ribbon
         self.f_y = 2.3  # vertical offset of color bar rectangles to related knot
         self.f_x = 1.6  # horizontal offset of color bar rectangles for 2 thread knots and type A
         self.sqrt_2 = math.sqrt(2)
@@ -328,9 +322,9 @@ class Ribbon():
         self.dis_right_high = Vector(0.6 * self.f_x * self.Vd, - 1.4 * self.f_y * self.Vd)  # x displacement to right
 
         # arc
-        hkl = KnotPoints(self.Kd,self.Vd)
+        hkl = KnotPoints(self.Kd, self.Vd)
         hkl.adjust
-        arc_left = hkl.PMa.x
+        arc_left = hkl.RefPtArcLft.x
         arc_dia = hkl.ArcQuadSide
         arc_ad = arc_dia + arc_left
 
@@ -339,12 +333,12 @@ class Ribbon():
         match self.type:
             case "L":
                 hw1 = - self.dis_left.x
-                hw1 -= self.Rd * (self.sqrt_2 - 1) / 2
-                self.cplW = hw + hw1
-                hl = 2 * (self.l - 1) * self.Vd + 2 * self.Kd
+                hw1 += self.Rd * (self.sqrt_2 - 1) / 2
+                self.cplW = hw + hw1 + self.Kd + 1.5 * self.Vd + 2 * self.Ec
+                hl = (2 * (self.l - 1) + (self.w - 1)) * self.Vd + self.Kd
                 hl1 = - self.dis_left.y
                 hl1 += self.Rd * (self.sqrt_2 - 1) / 2
-                self.cplL = hl + hl1
+                self.cplL = hl + hl1 + 2 * self.Ec
                 # Coordinate of left top start point for 1st knot
                 self.cBx = hw1
                 self.cBy = hl1
@@ -352,14 +346,15 @@ class Ribbon():
                       f"hl1: {hl1:.2f}, cpLL: {self.cplL:.2f}, cBx: {self.cBx:.2f}, cBy: {self.cBy:.2f}")
             case "R":
                 hw1 = self.dis_right.x
-                hw1 += self.Rd * self.sqrt_2 / 2
-                self.cplW = hw + self.Kd / 2 + hw1
-                hl = (2 * (self.l - 1) + (self.w - 1)) * self.Vd + 2 * self.Kd
-                hl1 = -self.dis_left.y
-                hl1 += self.Rd * self.sqrt_2 / 2
-                self.cplL = hl + self.Kd / 2 + hl1
+                hw1 += self.Rd * (self.sqrt_2 - 1) / 2
+                self.cplW = hw + hw1 + 2.5 * self.Vd + 2 * self.Ec
+                # self.cplW = 0.5 * self.Vd + arc_ad + (self.w - 1) * self.Vd + hw1
+                hl = (2 * (self.l - 1) + (self.w - 1)) * self.Vd + self.Kd
+                hl1 = - self.dis_left.y
+                hl1 += self.Rd * (self.sqrt_2 - 1) / 2
+                self.cplL = hl + hl1 + 2 * self.Ec
                 # Coordinate of left top start point for 1st knot
-                self.cBx = hw1
+                self.cBx = 1.5 * self.Vd
                 self.cBy = hl1
                 print(f"hw {hw:.2f}, hw1: {hw1:.2f}, cplW: {self.cplW:.2f}, hl: {hl:.2f}, "
                       f"hl1: {hl1:.2f}, cpLL: {self.cplL:.2f}, cBx: {self.cBx:.2f}, cBy: {self.cBy:.2f}")
@@ -369,11 +364,11 @@ class Ribbon():
                 hw2 = self.dis_right.x
                 hw2 += self.Rd * (1 + self.sqrt_2) / 2
                 # print(f"hw2: {hw2:.2f}")
-                self.cplW = hw + hw1 + hw2
+                self.cplW = hw + hw1 + hw2 + 2 * self.Ec
                 hl = (2 * (self.l - 1) + (self.w - 1) / 2) * self.Vd + self.Kd
                 hl1 = -self.dis_left.y
                 hl1 += self.Rd * (self.sqrt_2 - 1) / 2
-                self.cplL = hl + hl1
+                self.cplL = hl + hl1 + 2 * self.Ec
                 self.cBx = hw1
                 self.cBy = hl1
                 # print(f"hw {hw:.2f}, hw1: {hw1:.2f}, cplW: {self.cplW:.2f}, hl: {hl:.2f}, "
@@ -383,11 +378,11 @@ class Ribbon():
                 hw1 += self.Rd * (self.sqrt_2 - 1) / 2
                 hw2 = self.dis_right.x
                 hw2 += self.Rd * (1 + self.sqrt_2) / 2
-                self.cplW = hw + hw1 + hw2
+                self.cplW = hw + hw1 + hw2 + 2 * self.Ec
                 hl = (2 * (self.l - 1) + (self.w - 1) / 2) * self.Vd + self.Kd
                 hl1 = -self.dis_left.y
                 hl1 += self.Rd * (self.sqrt_2 - 1) / 2
-                self.cplL = hl + hl1
+                self.cplL = hl + hl1 + 2 * self.Ec
                 # Coordinate of left top start point for 1st knot
                 self.cBx = hw1
                 self.cBy = hl1 - (self.w - 1) / 2 * self.Vd
@@ -399,7 +394,7 @@ class Ribbon():
                 hw2 = self.dis_right.x
                 hw2 += self.Rd * (1 + self.sqrt_2) / 2
                 # print(f"hw2: {hw2:.2f}")
-                self.cplW = hw + hw1 + hw2
+                self.cplW = hw + hw1 + hw2 + 2 * self.Ec
                 hl = (2 * (self.l - 1) + (self.w - 1) / 4) * self.Vd + self.Kd
                 hl1 = -self.dis_left.y
                 hl1 += self.Rd * (self.sqrt_2 - 1) / 2
@@ -407,7 +402,7 @@ class Ribbon():
                 hl2 += self.Rd * (self.sqrt_2 - 1) / 2
                 if hl2 > hl1:
                     hl1 = hl2
-                self.cplL = hl + hl1
+                self.cplL = hl + hl1 + 2 * self.Ec
                 # Coordinate of left top start point for 1st knot
                 self.cBx = hw1
                 self.cBy = hl1
@@ -424,8 +419,9 @@ class Ribbon():
         self.thW = int(self.thW)
 
     def make_empty_ribbon(self):
+        # generate relative knot point coordinates
+        self.KnPnts = KnotPoints(self.Kd, self.Vd)
         self.K = [[Knot(self.scene, self.KnPnts) for _ in range(self.l)] for _ in range(self.w)]
-
         # only for debug ?
         for y in range(self.l):  # y .. index to the rows
             for x in range(self.w):  # x .. index inside each row
@@ -1253,7 +1249,6 @@ class KnotPoints():
         self.RefPtArcRgt = Vector.s_mult(self.RefPtArcRgt, Kd)
         # print(f"RefPtArcRgt ({RefPtArcRgt.x:.5f}, {RefPtArcRgt.y:.5f})")
         # ***************************************************************************************#
-
 
 
 class Knot():
